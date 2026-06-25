@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>מדבקת איתור</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial;
+        }
+
+        body {
+            background: #f4f7ff;
+            color: #111;
+        }
+
+
+        .hero {
+            background: radial-gradient(circle,#008cff55,transparent 40%), linear-gradient(135deg,#020617,#0a3cff);
+            min-height: 650px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+
+            .hero h1 {
+                font-size: 80px;
+                margin-bottom: 20px;
+            }
+
+
+            .hero p {
+                font-size: 25px;
+                max-width: 700px;
+                line-height: 1.6;
+            }
+
+
+        .btn {
+            display: inline-block;
+            margin-top: 30px;
+            background: white;
+            color: #0866ff;
+            padding: 18px 45px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+
+
+
+        .products {
+            padding: 80px 8%;
+        }
+
+
+
+        .title {
+            font-size: 45px;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+            gap: 40px;
+        }
+
+
+
+
+        .card {
+            background: white;
+            border-radius: 35px;
+            padding: 35px;
+            box-shadow: 0 20px 50px #0002;
+            text-align: center;
+            transition: .3s;
+        }
+
+
+
+            .card:hover {
+                transform: translateY(-10px);
+            }
+
+
+
+        /* תמונות מוצר */
+
+        .product {
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+
+        .squareSticker {
+            width: 180px;
+            height: 180px;
+            border-radius: 35px;
+            background: linear-gradient(145deg,#fff,#dbeafe);
+            box-shadow: 0 25px 50px #0004;
+            border: 5px solid #1687ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0866ff;
+            font-size: 30px;
+            font-weight: bold;
+            position: relative;
+        }
+
+
+
+            .squareSticker:after {
+                content: "";
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                background: #0866ff;
+                border-radius: 50%;
+                top: 20px;
+                right: 20px;
+            }
+
+
+
+
+
+        .longSticker {
+            width: 300px;
+            height: 80px;
+            border-radius: 50px;
+            background: linear-gradient(145deg,#fff,#dbeafe);
+            box-shadow: 0 25px 50px #0004;
+            border: 5px solid #1687ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0866ff;
+            font-size: 25px;
+            font-weight: bold;
+            position: relative;
+        }
+
+
+
+            .longSticker:after {
+                content: "";
+                position: absolute;
+                width: 18px;
+                height: 18px;
+                background: #0866ff;
+                border-radius: 50%;
+                right: 20px;
+            }
+
+
+
+        h2 {
+            margin: 20px;
+        }
+
+
+
+        .price {
+            font-size: 45px;
+            font-weight: bold;
+            color: #0866ff;
+            margin: 10px;
+        }
+
+
+
+        .buy {
+            display: block;
+            margin-top: 25px;
+            background: #00b956;
+            color: white;
+            padding: 17px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+
+
+
+        .features {
+            background: white;
+            padding: 80px 8%;
+        }
+
+
+
+        .featureGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+            gap: 25px;
+        }
+
+
+
+        .feature {
+            background: #eef5ff;
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+        }
+
+
+
+
+        .compare {
+            padding: 80px 8%;
+        }
+
+
+
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 25px;
+            overflow: hidden;
+            border-collapse: collapse;
+            box-shadow: 0 15px 40px #0002;
+        }
+
+
+
+        th {
+            background: #0866ff;
+            color: white;
+            padding: 20px;
+        }
+
+
+        td {
+            padding: 20px;
+            text-align: center;
+        }
+
+
+
+        footer {
+            background: #020617;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+
+    <section class="hero">
+
+        <div>
+
+            <h1>
+                מדבקת איתור
+            </h1>
+
+
+            <p>
+                המדבקה החכמה והדקה שמוצאת
+                כל מה שנעלם בבית.
+            </p>
+
+
+            <a class="btn" href="#buy">
+                קנייה עכשיו
+            </a>
+
+
+        </div>
+
+    </section>
+
+
+
+
+
+
+    <section class="products">
+
+
+        <h2 class="title">
+            המוצרים שלנו
+        </h2>
+
+
+
+        <div class="cards">
+
+
+
+
+
+            <div class="card">
+
+
+                <div class="product">
+
+                    <div class="squareSticker">
+
+                        📍
+
+                    </div>
+
+                </div>
+
+
+
+                <h2>
+                    מדבקה ריבועית
+                </h2>
+
+
+                <p>
+                    לשלטים, ארנקים ומפתחות
+                </p>
+
+
+                <p>
+                    גודל: 2.5 × 2.5 ס"מ
+                </p>
+
+
+                <h3>
+                    מחיר למדבקה
+                </h3>
+
+
+                <div class="price">
+                    ₪15
+                </div>
+
+
+                <h3>
+                    מארז 4
+                </h3>
+
+
+                <div class="price">
+                    ₪50
+                </div>
+
+
+
+                <a class="buy"
+                   href="YOUR_STRIPE_LINK">
+
+                    שלם עכשיו
+
+                </a>
+
+
+            </div>
+
+
+
+
+
+
+
+
+
+            <div class="card">
+
+
+                <div class="product">
+
+                    <div class="longSticker">
+
+                        📍
+
+                    </div>
+
+                </div>
+
+
+
+
+                <h2>
+                    מדבקת סרט
+                </h2>
+
+
+                <p>
+                    למשקפיים ומטענים
+                </p>
+
+
+                <p>
+                    גודל: 1 × 3 ס"מ
+                </p>
+
+
+                <h3>
+                    מחיר למדבקה
+                </h3>
+
+
+                <div class="price">
+                    ₪15
+                </div>
+
+
+                <h3>
+                    מארז 4
+                </h3>
+
+
+                <div class="price">
+                    ₪50
+                </div>
+
+
+
+                <a class="buy"
+                   href="YOUR_STRIPE_LINK">
+
+                    שלם עכשיו
+
+                </a>
+
+
+            </div>
+
+
+
+
+        </div>
+
+
+    </section>
+
+
+
+
+
+
+
+    <section class="features">
+
+
+        <h2 class="title">
+            איך זה עובד?
+        </h2>
+
+
+
+        <div class="featureGrid">
+
+
+            <div class="feature">
+
+                <h1>
+                    📱
+                </h1>
+
+                Bluetooth חכם
+
+            </div>
+
+
+            <div class="feature">
+
+                <h1>
+                    🔊
+                </h1>
+
+                צליל איתור
+
+            </div>
+
+
+            <div class="feature">
+
+                <h1>
+                    🔋
+                </h1>
+
+                שנתיים סוללה
+
+            </div>
+
+
+            <div class="feature">
+
+                <h1>
+                    📏
+                </h1>
+
+                1.8 מ"מ בלבד
+
+            </div>
+
+
+        </div>
+
+
+    </section>
+
+
+
+
+
+
+
+    <section class="compare">
+
+
+        <h2 class="title">
+            השוואה
+        </h2>
+
+
+        <table>
+
+            <tr>
+
+                <th>
+                </th>
+
+                <th>
+                    מדבקת איתור
+                </th>
+
+                <th>
+                    תגים רגילים
+                </th>
+
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    מחיר
+                </td>
+
+                <td>
+                    ₪15
+                </td>
+
+                <td>
+                    ₪130+
+                </td>
+
+            </tr>
+
+
+            <tr>
+
+                <td>
+                    עובי
+                </td>
+
+                <td>
+                    1.8 מ"מ
+                </td>
+
+                <td>
+                    עבה
+                </td>
+
+            </tr>
+
+
+        </table>
+
+
+    </section>
+
+
+
+
+    <footer>
+
+        <h2>
+            מדבקת איתור
+        </h2>
+
+        <p>
+            למצוא. מהר. פשוט.
+        </p>
+
+    </footer>
+
+
+</body>
+</html>

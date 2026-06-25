@@ -1,0 +1,1080 @@
+
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTD - FitTheDay | Your Fit Is In Your Hand</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap');
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background-color: #f5f3ef;
+        }
+
+        .serif-brand {
+            font-family: 'Cinzel', serif;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Custom styled range input */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #e7e5e4;
+            height: 6px;
+            border-radius: 9999px;
+        }
+
+            input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: #1c1917;
+                cursor: pointer;
+                transition: background 0.15s;
+            }
+
+                input[type="range"]::-webkit-slider-thumb:hover {
+                    background: #78716c;
+                }
+    </style>
+</head>
+<body class="min-h-screen text-stone-800 flex flex-col pb-16 md:pb-0">
+
+    <!-- נוטיפיקציות צפות (Toast) -->
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-stone-900 text-white px-5 py-3 rounded-full shadow-xl flex items-center space-x-2 space-x-reverse border border-stone-700 hidden transition-all duration-300">
+        <i class="fa-solid fa-sparkles text-amber-300"></i>
+        <span id="toast-message" class="text-xs font-semibold">הודעה כלשהי</span>
+    </div>
+
+    <!-- כותרת עליונה יוקרתית -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-40 px-4 py-3.5 shadow-sm">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3.5 space-x-reverse">
+
+                <!-- לוגו FTD -->
+                <div class="bg-stone-950 text-white serif-brand px-3.5 py-1.5 rounded-lg border border-stone-850 tracking-wider text-lg font-black shadow-md flex items-center justify-center">
+                    FTD
+                </div>
+
+                <div>
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <h1 class="text-lg md:text-xl font-extrabold tracking-tight text-stone-900 serif-brand">FitTheDay</h1>
+                        <span class="h-4 w-[1px] bg-stone-300 hidden sm:inline"></span>
+                        <p class="text-[10px] md:text-xs text-stone-500 font-medium tracking-wide hidden sm:inline">Your Fit Is In Your Hand</p>
+                    </div>
+                    <p class="text-[10px] text-stone-400 sm:hidden">Your Fit Is In Your Hand</p>
+                </div>
+            </div>
+
+            <div>
+                <button onclick="switchTab('info')" class="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors" title="איך להשתמש באפליקציה">
+                    <i class="fa-solid fa-info-circle text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- גוף האפליקציה המרכזי -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 grid grid-cols-1 md:grid-cols-4 gap-6">
+
+        <!-- תפריט ניווט צדדי (דסקטופ) -->
+        <div class="hidden md:block col-span-1 bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm h-fit space-y-4 animate-fade-in">
+            <div class="space-y-1">
+                <button onclick="switchTab('wardrobe')" id="nav-wardrobe" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all bg-stone-900 text-white">
+                    👚 הארון שלי (<span class="item-count-badge">6</span>)
+                </button>
+                <button onclick="switchTab('builder')" id="nav-builder" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all text-stone-600 hover:bg-stone-50">
+                    ✨ חדר הלבשה ומיקס
+                </button>
+                <button onclick="switchTab('looks')" id="nav-looks" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all text-stone-600 hover:bg-stone-50">
+                    📁 לוקים שמורים (<span class="looks-count-badge">1</span>)
+                </button>
+            </div>
+
+            <div class="p-4 bg-stone-50 rounded-2xl border border-stone-100 text-center">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-1">סלוגן המותג</p>
+                <p class="text-xs serif-brand italic text-stone-600">"Your Fit Is In Your Hand"</p>
+            </div>
+        </div>
+
+        <!-- האזור המרכזי שמשתנה לפי הטאבים -->
+        <div class="col-span-1 md:col-span-3 space-y-6">
+
+            <!-- ==================== טאב 1: הארון שלי ==================== -->
+            <section id="tab-wardrobe" class="space-y-6 animate-fade-in">
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-stone-200">
+                    <div>
+                        <h2 class="text-xl font-bold text-stone-950 font-serif">הארון הווירטואלי שלי</h2>
+                        <p class="text-xs text-stone-500">העלי בגדים אמיתיים, נקי את הרקע והתחילי ליצור קולקציות</p>
+                    </div>
+
+                    <button onclick="toggleAddItemForm(true)" class="bg-stone-900 hover:bg-stone-850 text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center justify-center space-x-2 space-x-reverse shadow-md">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>העלי בגד חדש מהארון שלי 📸</span>
+                    </button>
+                </div>
+
+                <!-- טופס הוספת פריט וכלי גזירה (Hidden initially) -->
+                <div id="add-item-form" class="bg-white p-6 rounded-2xl border-2 border-stone-300 shadow-md space-y-4 hidden animate-fade-in">
+                    <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                        <h3 class="font-bold text-stone-900 flex items-center space-x-2 space-x-reverse">
+                            <i class="fa-solid fa-camera text-stone-800"></i>
+                            <span>העלאת בגד אמיתי וכלי להסרת רקע</span>
+                        </h3>
+                        <button onclick="toggleAddItemForm(false)" class="text-stone-400 hover:text-stone-600 text-xs font-bold">ביטול</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- העלאת קובץ וגזירת רקע בקנבס -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold text-stone-600">שלב 1: העלאת קובץ או צילום במצלמה</label>
+
+                            <div class="border-2 border-dashed border-stone-200 rounded-2xl h-60 flex flex-col items-center justify-center bg-stone-50 overflow-hidden relative">
+                                <div id="upload-placeholder" class="text-center p-4 cursor-pointer hover:bg-stone-100 w-full h-full flex flex-col justify-center items-center" onclick="triggerFileInput()">
+                                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-stone-400 mb-2"></i>
+                                    <p class="text-xs font-bold text-stone-600">לחצי לבחירת קובץ או צילום מהטלפון</p>
+                                    <p class="text-[10px] text-stone-400 mt-1">תומך בתמונות אמיתיות שלך</p>
+                                </div>
+                                <div id="canvas-container" class="absolute inset-0 flex items-center justify-center p-4 bg-stone-100 hidden">
+                                    <canvas id="crop-canvas" class="max-h-full max-w-full object-contain cursor-crosshair" title="לחצי על הרקע בתמונה כדי למחוק אותו"></canvas>
+                                </div>
+                                <input type="file" id="file-input" class="hidden" accept="image/*" capture="environment" onchange="handleImageUpload(event)">
+                            </div>
+
+                            <!-- כלי מחיקת הרקע -->
+                            <div id="bg-tools" class="bg-stone-50 p-3 rounded-xl border border-stone-200 space-y-2 hidden">
+                                <p class="text-[11px] font-bold text-stone-700">כלי הסרת רקע אוטומטי/ידני:</p>
+
+                                <div class="flex items-center space-x-2 space-x-reverse">
+                                    <span class="text-[10px] text-stone-500">רמת מחיקה:</span>
+                                    <input type="range" id="tolerance-slider" min="5" max="100" value="30" class="flex-1" onchange="updateToleranceValue(this.value)">
+                                    <span id="tolerance-val" class="text-[10px] font-mono text-stone-600">30</span>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="autoRemoveBackground()" class="bg-stone-900 text-white text-[10px] font-bold py-2 rounded-lg flex items-center justify-center space-x-1.5 space-x-reverse">
+                                        <i class="fa-solid fa-eraser"></i>
+                                        <span>מחיקת רקע אוטומטית</span>
+                                    </button>
+                                    <button type="button" onclick="resetCanvasImage()" class="bg-stone-200 text-stone-700 text-[10px] font-bold py-2 rounded-lg">
+                                        החזרת המקור
+                                    </button>
+                                </div>
+                                <p class="text-[9px] text-stone-500 text-center">טיפ: תוכלי גם ללחוץ ישירות על צבע כלשהו בתמונה כדי למחוק אותו!</p>
+                            </div>
+                        </div>
+
+                        <!-- הגדרת הפרטים של הבגד -->
+                        <div class="space-y-4 flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 mb-1">שם הבגד</label>
+                                    <input type="text" id="new-item-name" placeholder="לדוגמה: ג׳קט שחור יוקרתי" class="w-full p-2.5 rounded-xl border border-stone-200 text-xs focus:ring-1 focus:ring-stone-900 outline-none">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 mb-1">קטגוריה</label>
+                                    <select id="new-item-category" class="w-full p-2.5 rounded-xl border border-stone-200 text-xs bg-white">
+                                        <option value="tops">חלק עליון (חולצה, סוודר, ג׳קט)</option>
+                                        <option value="bottoms">חלק תחתון (מכנסיים, חצאית, ג׳ינס)</option>
+                                        <option value="shoes">נעליים</option>
+                                        <option value="accessories">אקססוריז ותיקים</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-600 mb-1">צבע עיקרי (למיון)</label>
+                                    <input type="color" id="new-item-color" value="#ffffff" class="w-12 h-8 p-0 rounded cursor-pointer border-0">
+                                </div>
+                            </div>
+
+                            <button onclick="addNewItem()" class="w-full bg-stone-900 hover:bg-stone-850 text-white font-bold py-3 rounded-xl text-xs transition-all mt-4">
+                                הוספה מוצלחת לארון הבגדים שלי 💾
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- רשימות הבגדים הממוינות -->
+                <div class="space-y-6" id="wardrobe-categories">
+                    <!-- ייקרא דינמית על ידי Javascript -->
+                </div>
+
+            </section>
+
+            <!-- ==================== טאב 2: חדר הלבשה ==================== -->
+            <section id="tab-builder" class="space-y-6 animate-fade-in hidden">
+
+                <div class="bg-white p-4 rounded-2xl border border-stone-200">
+                    <h2 class="text-xl font-bold text-stone-950 font-serif">חדר הלבשה דינמי (FTD Builder)</h2>
+                    <p class="text-xs text-stone-500">בחרי בגדים מהארון המצולם שלך והרכיבי לוקים חדשים לבדיקה</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- קולב ההלבשה הדיגיטלי -->
+                    <div class="lg:col-span-1 bg-white p-5 rounded-3xl border border-stone-200 flex flex-col justify-between items-center min-h-[500px] relative shadow-sm">
+
+                        <div class="w-full flex-1 flex flex-col items-center justify-center space-y-4 my-4">
+
+                            <!-- חריץ אקססוריז -->
+                            <div id="slot-accessories" class="w-24 h-24 rounded-2xl border-2 border-dashed border-stone-200 flex items-center justify-center bg-stone-50 overflow-hidden relative">
+                                <span class="text-[10px] text-stone-400">🕶️ אקססוריז</span>
+                            </div>
+
+                            <!-- חריץ חלק עליון -->
+                            <div id="slot-tops" class="w-32 h-32 rounded-2xl border-2 border-dashed border-stone-200 flex items-center justify-center bg-stone-50 overflow-hidden relative">
+                                <span class="text-[10px] text-stone-400">👚 חלק עליון</span>
+                            </div>
+
+                            <!-- חריץ חלק תחתון -->
+                            <div id="slot-bottoms" class="w-32 h-32 rounded-2xl border-2 border-dashed border-stone-200 flex items-center justify-center bg-stone-50 overflow-hidden relative">
+                                <span class="text-[10px] text-stone-400">👖 חלק תחתון</span>
+                            </div>
+
+                            <!-- חריץ נעליים -->
+                            <div id="slot-shoes" class="w-24 h-24 rounded-2xl border-2 border-dashed border-stone-200 flex items-center justify-center bg-stone-50 overflow-hidden relative">
+                                <span class="text-[10px] text-stone-400">👟 נעליים</span>
+                            </div>
+
+                        </div>
+
+                        <!-- טופס שמירה של הלוק -->
+                        <div class="w-full border-t border-stone-100 pt-4 space-y-3">
+                            <input type="text" id="look-name-input" placeholder="תני שם ללוק (למשל: לבוש לבית ספר)" class="w-full p-2.5 rounded-xl border border-stone-200 text-xs text-center focus:ring-1 focus:ring-stone-950 outline-none">
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <select id="look-folder-select" class="p-2.5 rounded-xl border border-stone-200 text-xs bg-white text-center">
+                                    <!-- ימולא דינמית -->
+                                </select>
+
+                                <button onclick="saveCurrentLook()" class="bg-stone-900 hover:bg-stone-850 text-white text-xs font-bold py-2 px-3 rounded-xl transition-all">
+                                    שמירת הלוק 💾
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- מגירת הבחרה מהארון -->
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="bg-white p-5 rounded-3xl border border-stone-200 space-y-4">
+                            <h3 class="font-bold text-stone-900 text-sm">בחרי פריט מהארון כדי להלביש:</h3>
+                            <div id="builder-wardrobe-drawer" class="space-y-4">
+                                <!-- ייטען דינמית -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- ==================== טאב 3: לוקים שמורים ==================== -->
+            <section id="tab-looks" class="space-y-6 animate-fade-in hidden">
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200">
+                    <div>
+                        <h2 class="text-xl font-bold text-stone-950 font-serif">תיקיות לוקים ושילובי בגדים</h2>
+                        <p class="text-xs text-stone-500">הלוקים שתכננת ושמרת ממוינים לפי תיקיות אירועים</p>
+                    </div>
+
+                    <button onclick="toggleAddFolderForm(true)" class="bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold px-4 py-2.5 rounded-xl border border-stone-200 text-xs transition-all flex items-center justify-center space-x-2 space-x-reverse">
+                        <i class="fa-solid fa-folder-plus text-xs"></i>
+                        <span>תיקייה חדשה 📁</span>
+                    </button>
+                </div>
+
+                <!-- טופס הוספת תיקייה (Hidden initially) -->
+                <div id="add-folder-form" class="bg-white p-4 rounded-2xl border border-stone-200 shadow-md flex items-center space-x-3 space-x-reverse hidden">
+                    <input type="text" id="new-folder-name" placeholder="שם התיקייה (למשל: סופשבוע, חדר כושר)" class="flex-1 p-2.5 rounded-xl border border-stone-200 text-xs outline-none">
+                    <button onclick="addNewFolder()" class="bg-stone-900 text-white font-bold text-xs py-2.5 px-4 rounded-xl">צור</button>
+                    <button onclick="toggleAddFolderForm(false)" class="text-stone-400 text-xs font-bold">ביטול</button>
+                </div>
+
+                <!-- פילטר תיקיות -->
+                <div class="flex flex-wrap gap-2" id="folder-filters-container">
+                    <!-- ייטען דינמית -->
+                </div>
+
+                <!-- רשת הלוקים השמורים -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="saved-looks-grid">
+                    <!-- ייטען דינמית -->
+                </div>
+
+            </section>
+
+            <!-- ==================== טאב 4: דף הסבר ==================== -->
+            <section id="tab-info" class="bg-white p-6 rounded-3xl border border-stone-200 space-y-4 animate-fade-in hidden">
+                <h2 class="text-xl font-bold text-stone-950 flex items-center space-x-2 space-x-reverse font-serif">
+                    <span>איך להשתמש באפליקציה בצורה הטובה ביותר? 💡</span>
+                </h2>
+
+                <div class="space-y-3 text-stone-600 text-xs leading-relaxed">
+                    <p class="font-bold text-stone-800 text-sm">שלב 1: העלאה או צילום</p>
+                    <p>לחצי על "העלי בגד חדש" בארון שלך. תוכלי לבחור לצלם בגד ישירות מול קיר או להעלות תמונה קיימת. מומלץ לצלם על רקע אחיד יחסית (כמו רצפה אחידה או קיר לבן) לקבלת תוצאה מושלמת.</p>
+
+                    <p class="font-bold text-stone-800 text-sm">שלב 2: גזירת הרקע והפיכתו לשקוף (Transparent)</p>
+                    <p>אחרי שבחרת קובץ, תוכלי להשתמש בכפתור "מחיקת רקע אוטומטית". האפליקציה תנסה לזקק את צבע הרקע ולמחוק אותו מכל התמונה. במידה ונשאר רקע, תוכלי ללחוץ ישירות על אזורים שונים בתמונה שברצונך למחוק, והם יהפכו לשקופים מיידית בזכות טכנולוגיית ה-Canvas שלנו!</p>
+
+                    <p class="font-bold text-stone-800 text-sm">שלב 3: הרכבת פיטים (Mix & Match)</p>
+                    <p>עברי לטאב "חדר הלבשה". בחרי את החלקים השונים שלך וראי איך הצבעים והבדים משתלבים יחד על קולב אחד נקי ומקצועי.</p>
+
+                    <p class="font-bold text-stone-800 text-sm">שלב 4: ארגון בתיקיות</p>
+                    <p>תני שם מנצח ללוק, בחרי תיקייה מתאימה ושמרי אותו. תמיד תדעי מה יש לך בארון ומה השילובים המנצחים שלך!</p>
+                </div>
+
+                <button onclick="switchTab('wardrobe')" class="bg-stone-900 text-white font-bold text-xs py-2.5 px-5 rounded-xl">
+                    הבנתי, בואי נתחיל! 🚀
+                </button>
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- תפריט ניווט תחתון (מושלם למובייל ולמגע) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200/80 shadow-md flex justify-around py-3 px-2 z-40 md:hidden">
+
+        <button onclick="switchTab('wardrobe')" id="mobile-nav-wardrobe" class="flex flex-col items-center flex-1 text-stone-900 font-bold">
+            <span class="text-lg">👚</span>
+            <span class="text-[9px] mt-1">הארון (<span class="item-count-badge">6</span>)</span>
+        </button>
+
+        <button onclick="switchTab('builder')" id="mobile-nav-builder" class="flex flex-col items-center flex-1 text-stone-400">
+            <span class="text-lg">✨</span>
+            <span class="text-[9px] mt-1">חדר הלבשה</span>
+        </button>
+
+        <button onclick="switchTab('looks')" id="mobile-nav-looks" class="flex flex-col items-center flex-1 text-stone-400">
+            <span class="text-lg">📁</span>
+            <span class="text-[9px] mt-1">תיקיות (<span class="looks-count-badge">1</span>)</span>
+        </button>
+
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // בגדי ברירת מחדל
+        let items = [
+            { id: 't1', name: 'גופיית קרופ לבנה', category: 'tops', color: '#ffffff', isPlaceholder: true, imageType: 'linen-shirt' },
+            { id: 't2', name: 'ג׳קט ג׳ינס קלאסי', category: 'tops', color: '#3b82f6', isPlaceholder: true, imageType: 'sweater' },
+            { id: 'b1', name: 'ג׳ינס רחב כחול', category: 'bottoms', color: '#60a5fa', isPlaceholder: true, imageType: 'denim-jeans' },
+            { id: 'b2', name: 'מכנסי דגמ״ח שחורים', category: 'bottoms', color: '#111827', isPlaceholder: true, imageType: 'tailored-pants' },
+            { id: 's1', name: 'סניקרס פלטפורמה', category: 'shoes', color: '#ffffff', isPlaceholder: true, imageType: 'sneakers' },
+            { id: 'a1', name: 'תיק צד שחור', category: 'accessories', color: '#000000', isPlaceholder: true, imageType: 'bag' }
+        ];
+
+        let looks = [
+            {
+                id: 'l1',
+                name: 'לוק יומיומי קליל',
+                folder: 'יום יום',
+                items: {
+                    tops: 't1',
+                    bottoms: 'b1',
+                    shoes: 's1',
+                    accessories: 'a1'
+                },
+                isFavorite: true
+            }
+        ];
+
+        let folders = ['הכל', 'יום יום', 'בית ספר', 'יציאות', 'ספורט'];
+        let activeTab = 'wardrobe';
+        let selectedFolderFilter = 'הכל';
+
+        // בחירות בבונה
+        let selectedTop = null;
+        let selectedBottom = null;
+        let selectedShoes = null;
+        let selectedAccessory = null;
+
+        // נתוני העלאת קבצים
+        let uploadedImageSrc = null;
+        let processedImageSrc = null;
+        let tolerance = 30;
+
+        // אלמנטים בקנבס
+        const canvas = document.getElementById('crop-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // אתחול האפליקציה בטעינה
+        window.onload = function () {
+            renderAll();
+            setupCanvasInteraction();
+        };
+
+        // פונקציית טוסט נוטיפיקציה
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        // ניווט טאבים
+        function switchTab(tabId) {
+            activeTab = tabId;
+
+            // הסתרת כל הסקשנים
+            document.getElementById('tab-wardrobe').classList.add('hidden');
+            document.getElementById('tab-builder').classList.add('hidden');
+            document.getElementById('tab-looks').classList.add('hidden');
+            document.getElementById('tab-info').classList.add('hidden');
+
+            // הצגת הסקשן הנבחר
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // עדכון נראות ניווט דסקטופ
+            const tabs = ['wardrobe', 'builder', 'looks'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (btn) {
+                    if (t === tabId) {
+                        btn.className = "w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all bg-stone-900 text-white";
+                    } else {
+                        btn.className = "w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all text-stone-600 hover:bg-stone-50";
+                    }
+                }
+
+                // ניווט מובייל
+                const mobBtn = document.getElementById(`mobile-nav-${t}`);
+                if (mobBtn) {
+                    if (t === tabId) {
+                        mobBtn.className = "flex flex-col items-center flex-1 text-stone-900 font-bold";
+                    } else {
+                        mobBtn.className = "flex flex-col items-center flex-1 text-stone-400";
+                    }
+                }
+            });
+
+            renderAll();
+        }
+
+        // שליטה בטופס הוספת בגד
+        function toggleAddItemForm(show) {
+            const form = document.getElementById('add-item-form');
+            if (show) {
+                form.classList.remove('hidden');
+            } else {
+                form.classList.add('hidden');
+                // איפוס קבצים
+                uploadedImageSrc = null;
+                processedImageSrc = null;
+                document.getElementById('upload-placeholder').classList.remove('hidden');
+                document.getElementById('canvas-container').classList.add('hidden');
+                document.getElementById('bg-tools').classList.add('hidden');
+                document.getElementById('new-item-name').value = '';
+            }
+        }
+
+        function triggerFileInput() {
+            document.getElementById('file-input').click();
+        }
+
+        // טיפול בהעלאת תמונה
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    uploadedImageSrc = e.target.result;
+                    processedImageSrc = e.target.result;
+
+                    document.getElementById('upload-placeholder').classList.add('hidden');
+                    document.getElementById('canvas-container').classList.remove('hidden');
+                    document.getElementById('bg-tools').classList.remove('hidden');
+
+                    initCanvas(uploadedImageSrc);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // אתחול הקנבס עם התמונה
+        function initCanvas(imgSrc) {
+            const img = new Image();
+            img.onload = function () {
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = imgSrc;
+        }
+
+        // מעקב אחר לחיצות על הקנבס לצורך מחיקה ידנית
+        function setupCanvasInteraction() {
+            canvas.addEventListener('click', function (e) {
+                if (!uploadedImageSrc) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                removeBackgroundAtPixel(clickX, clickY, false);
+            });
+        }
+
+        // עדכון ערך דיוק הסליידר
+        function updateToleranceValue(val) {
+            tolerance = Number(val);
+            document.getElementById('tolerance-val').innerText = val;
+        }
+
+        // שחזור תמונה מקורית
+        function resetCanvasImage() {
+            if (!uploadedImageSrc) return;
+            initCanvas(uploadedImageSrc);
+            processedImageSrc = uploadedImageSrc;
+            showToast("התמונה שוחזרה למקור");
+        }
+
+        // מחיקת רקע אוטומטית (מתבסס על הפיקסל השמאלי העליון)
+        function autoRemoveBackground() {
+            removeBackgroundAtPixel(0, 0, true);
+        }
+
+        // פונקציית עיבוד תמונה למחיקת צבע דומה (Background Removal)
+        function removeBackgroundAtPixel(clickX, clickY, autoCorner = false) {
+            if (!uploadedImageSrc) return;
+
+            const img = new Image();
+            img.onload = function () {
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+
+                let targetR, targetG, targetB;
+
+                if (autoCorner) {
+                    targetR = data[0];
+                    targetG = data[1];
+                    targetB = data[2];
+                } else {
+                    const x = Math.floor((clickX / canvas.clientWidth) * canvas.width);
+                    const y = Math.floor((clickY / canvas.clientHeight) * canvas.height);
+                    const index = (y * canvas.width + x) * 4;
+                    targetR = data[index];
+                    targetG = data[index + 1];
+                    targetB = data[index + 2];
+                }
+
+                // מעבר על כל הפיקסלים ומחיקת הצבעים הדומים בהתאם ל-tolerance
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+
+                    const distance = Math.sqrt(
+                        Math.pow(r - targetR, 2) +
+                        Math.pow(g - targetG, 2) +
+                        Math.pow(b - targetB, 2)
+                    );
+
+                    if (distance < tolerance) {
+                        data[i + 3] = 0; // הפיכת שקיפות ל-0
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                processedImageSrc = canvas.toDataURL();
+                showToast("הרקע נמחק בהצלחה! ✨");
+            };
+            img.src = uploadedImageSrc;
+        }
+
+        // הוספת בגד חדש למערך
+        function addNewItem() {
+            const name = document.getElementById('new-item-name').value;
+            const category = document.getElementById('new-item-category').value;
+            const color = document.getElementById('new-item-color').value;
+
+            if (!name.trim()) {
+                showToast("אנא תני שם לבגד!");
+                return;
+            }
+
+            const newItem = {
+                id: 'item_' + Date.now(),
+                name: name,
+                category: category,
+                color: color,
+                image: processedImageSrc || null,
+                isPlaceholder: !processedImageSrc
+            };
+
+            items.unshift(newItem);
+            showToast("הבגד שלך נוסף לארון בהצלחה! 👕");
+            toggleAddItemForm(false);
+            renderAll();
+        }
+
+        // מחיקת בגד מהארון
+        function deleteItem(id) {
+            items = items.filter(i => i.id !== id);
+            showToast("הפריט נמחק מהארון");
+            renderAll();
+        }
+
+        // מחיקת לוק שלם
+        function deleteLook(id) {
+            looks = looks.filter(l => l.id !== id);
+            showToast("הלוק נמחק");
+            renderAll();
+        }
+
+        // שליטה בטופס הוספת תיקייה
+        function toggleAddFolderForm(show) {
+            const form = document.getElementById('add-folder-form');
+            if (show) {
+                form.classList.remove('hidden');
+            } else {
+                form.classList.add('hidden');
+                document.getElementById('new-folder-name').value = '';
+            }
+        }
+
+        // הוספת תיקייה חדשה
+        function addNewFolder() {
+            const folderName = document.getElementById('new-folder-name').value;
+            if (!folderName.trim()) return;
+            if (folders.includes(folderName.trim())) {
+                showToast("התיקייה כבר קיימת!");
+                return;
+            }
+
+            folders.push(folderName.trim());
+            toggleAddFolderForm(false);
+            showToast(`נוצרה תיקייה חדשה: "${folderName}" 📁`);
+            renderAll();
+        }
+
+        // שמירת הלוק המורכב הנוכחי
+        function saveCurrentLook() {
+            const name = document.getElementById('look-name-input').value;
+            const folder = document.getElementById('look-folder-select').value;
+
+            if (!selectedTop || !selectedBottom) {
+                showToast("חובה לבחור לפחות חלק עליון וחלק תחתון!");
+                return;
+            }
+            if (!name.trim()) {
+                showToast("אנא תני שם מנצח ללוק שלך");
+                return;
+            }
+
+            const newLook = {
+                id: 'look_' + Date.now(),
+                name: name,
+                folder: folder,
+                items: {
+                    tops: selectedTop.id,
+                    bottoms: selectedBottom.id,
+                    shoes: selectedShoes ? selectedShoes.id : null,
+                    accessories: selectedAccessory ? selectedAccessory.id : null
+                },
+                isFavorite: false
+            };
+
+            looks.unshift(newLook);
+            document.getElementById('look-name-input').value = '';
+
+            // איפוס בחירות
+            selectedTop = null;
+            selectedBottom = null;
+            selectedShoes = null;
+            selectedAccessory = null;
+
+            showToast("הלוק נשמר בתיקייה! ✨👗");
+            switchTab('looks');
+        }
+
+        // פונקציה לייצור פלייסהולדר של בגד במידה ולא הועלתה תמונה אמיתית
+        function renderPlaceholderSVG(type, color = '#475569') {
+            switch (type) {
+                case 'linen-shirt':
+                    return `
+                            <svg class="w-16 h-16 opacity-70" viewBox="0 0 100 100" fill="none">
+                                <path d="M30 20 L50 30 L70 20 L85 35 L75 48 L68 43 L68 85 L32 85 L32 43 L25 48 L15 35 Z" fill="${color}" stroke="#1e293b" stroke-width="2" />
+                            </svg>
+                        `;
+                case 'sweater':
+                    return `
+                            <svg class="w-16 h-16 opacity-70" viewBox="0 0 100 100" fill="none">
+                                <path d="M22 25 L38 20 L50 28 L62 20 L78 25 L84 52 L72 52 L72 85 L28 85 L28 52 L16 52 Z" fill="${color}" stroke="#1e293b" stroke-width="2" />
+                            </svg>
+                        `;
+                case 'denim-jeans':
+                    return `
+                            <svg class="w-16 h-16 opacity-70" viewBox="0 0 100 100" fill="none">
+                                <path d="M30 15 L70 15 L75 45 L70 90 L52 90 L50 55 L48 90 L30 90 L25 45 Z" fill="${color}" stroke="#1e293b" stroke-width="2" />
+                            </svg>
+                        `;
+                case 'tailored-pants':
+                    return `
+                            <svg class="w-16 h-16 opacity-70" viewBox="0 0 100 100" fill="none">
+                                <path d="M32 15 L68 15 L71 40 L66 90 L51 90 L50 50 L49 90 L34 90 L29 40 Z" fill="${color}" stroke="#1e293b" stroke-width="2" />
+                            </svg>
+                        `;
+                case 'sneakers':
+                    return `
+                            <svg class="w-16 h-16 opacity-70" viewBox="0 0 100 100" fill="none">
+                                <path d="M15 65 C15 50, 25 45, 45 45 C60 45, 75 35, 85 45 L85 70 L15 70 Z" fill="${color}" stroke="#1e293b" stroke-width="2" />
+                            </svg>
+                        `;
+                case 'bag':
+                    return `
+                            <svg class="w-16 h-16 opacity-70" viewBox="0 0 100 100" fill="none">
+                                <rect x="25" y="40" width="50" height="40" rx="8" fill="${color}" stroke="#1e293b" stroke-width="2" />
+                                <path d="M35 40 C35 25, 65 25, 65 40" stroke="#1e293b" stroke-width="2" fill="none" />
+                            </svg>
+                        `;
+                default:
+                    return `<i class="fa-solid fa-shirt text-3xl text-stone-400"></i>`;
+            }
+        }
+
+        // ==================== פונקציות הרינדור הדינמיות ====================
+
+        function renderAll() {
+            // עדכון המונים של תיקיות
+            document.querySelectorAll('.item-count-badge').forEach(el => el.innerText = items.length);
+            document.querySelectorAll('.looks-count-badge').forEach(el => el.innerText = looks.length);
+
+            if (activeTab === 'wardrobe') {
+                renderWardrobe();
+            } else if (activeTab === 'builder') {
+                renderBuilder();
+            } else if (activeTab === 'looks') {
+                renderLooks();
+            }
+        }
+
+        // רינדור קטגוריות הארון
+        function renderWardrobe() {
+            const container = document.getElementById('wardrobe-categories');
+            container.innerHTML = '';
+
+            const categories = [
+                { id: 'tops', label: 'חלקים עליונים', icon: '👚' },
+                { id: 'bottoms', label: 'חלקים תחתונים', icon: '👖' },
+                { id: 'shoes', label: 'נעליים', icon: '👟' },
+                { id: 'accessories', label: 'אקססוריז ותיקים', icon: '🕶️' }
+            ];
+
+            categories.forEach(cat => {
+                const catItems = items.filter(i => i.category === cat.id);
+
+                let itemsHTML = '';
+                if (catItems.length === 0) {
+                    itemsHTML = `<p class="text-xs text-stone-400 py-4 text-center">אין פריטים בקטגוריה זו. העלי בגד חדש!</p>`;
+                } else {
+                    itemsHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">`;
+                    catItems.forEach(item => {
+                        const imageHTML = item.isPlaceholder
+                            ? renderPlaceholderSVG(item.imageType, item.color)
+                            : `<img src="${item.image}" alt="${item.name}" class="max-h-full max-w-full object-contain">`;
+
+                        itemsHTML += `
+                                <div class="border border-stone-100 rounded-xl p-3 bg-stone-50/50 flex flex-col justify-between relative group">
+                                    <div class="aspect-square rounded-lg bg-white overflow-hidden flex items-center justify-center p-2 border border-stone-100 mb-2">
+                                        ${imageHTML}
+                                    </div>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-stone-900 truncate">${item.name}</h4>
+                                        <div class="flex items-center justify-between mt-1">
+                                            <span class="w-3.5 h-3.5 rounded-full border border-stone-300" style="background-color: ${item.color}"></span>
+                                            <div class="flex space-x-1 space-x-reverse">
+                                                <button onclick="dressItem('${item.id}')" class="text-[10px] bg-stone-900 text-white px-2 py-1 rounded hover:bg-stone-850 transition-colors">لهלבשה</button>
+                                                <button onclick="deleteItem('${item.id}')" class="text-stone-400 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                    });
+                    itemsHTML += `</div>`;
+                }
+
+                container.innerHTML += `
+                        <div class="bg-white p-4 rounded-2xl border border-stone-200">
+                            <h3 class="font-bold text-stone-900 text-sm mb-3 border-b border-stone-100 pb-2 flex items-center justify-between">
+                                <span class="font-serif">${cat.icon} ${cat.label}</span>
+                                <span class="text-xs bg-stone-100 px-2 py-0.5 rounded-full text-stone-600">${catItems.length} פריטים</span>
+                            </h3>
+                            ${itemsHTML}
+                        </div>
+                    `;
+            });
+        }
+
+        // הרכבה ישירה מהארון לחדר הלבשה
+        function dressItem(itemId) {
+            const item = items.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (item.category === 'tops') selectedTop = item;
+            if (item.category === 'bottoms') selectedBottom = item;
+            if (item.category === 'shoes') selectedShoes = item;
+            if (item.category === 'accessories') selectedAccessory = item;
+
+            showToast(`נוספה להרכבה: ${item.name}`);
+            switchTab('builder');
+        }
+
+        // רינדור חדר ההלבשה
+        function renderBuilder() {
+            // 1. עדכון חריצים בקולב
+            updateSlotHTML('accessories', selectedAccessory, '🕶️ אקססוריז');
+            updateSlotHTML('tops', selectedTop, '👚 חלק עליון');
+            updateSlotHTML('bottoms', selectedBottom, '👖 חלק תחתון');
+            updateSlotHTML('shoes', selectedShoes, '👟 נעליים');
+
+            // 2. עדכון רשימת התיקיות באופציות השמירה
+            const folderSelect = document.getElementById('look-folder-select');
+            folderSelect.innerHTML = '';
+            folders.filter(f => f !== 'הכל').forEach(f => {
+                folderSelect.innerHTML += `<option value="${f}">${f}</option>`;
+            });
+
+            // 3. עדכון מגירת הבחירה מהארון
+            const drawer = document.getElementById('builder-wardrobe-drawer');
+            drawer.innerHTML = '';
+
+            const categories = [
+                { id: 'tops', label: 'חלקים עליונים' },
+                { id: 'bottoms', label: 'חלקים תחתונים' },
+                { id: 'shoes', label: 'נעליים' },
+                { id: 'accessories', label: 'אקססוריז' }
+            ];
+
+            categories.forEach(cat => {
+                const catItems = items.filter(i => i.category === cat.id);
+                let catButtons = '';
+
+                catItems.forEach(item => {
+                    const isSelected = (selectedTop?.id === item.id || selectedBottom?.id === item.id || selectedShoes?.id === item.id || selectedAccessory?.id === item.id);
+                    const imageHTML = item.isPlaceholder
+                        ? renderPlaceholderSVG(item.imageType, item.color)
+                        : `<img src="${item.image}" class="max-h-full max-w-full object-contain">`;
+
+                    catButtons += `
+                            <button onclick="toggleSelectBuilderItem('${item.id}')" class="p-2 rounded-xl border text-right flex items-center space-x-2 space-x-reverse transition-all ${isSelected ? 'border-stone-900 bg-stone-50 ring-2 ring-stone-300' : 'border-stone-200 bg-white hover:bg-stone-50'}">
+                                <div class="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center border border-stone-100">
+                                    ${imageHTML}
+                                </div>
+                                <span class="text-xs font-semibold text-stone-850 truncate max-w-[100px]">${item.name}</span>
+                            </button>
+                        `;
+                });
+
+                drawer.innerHTML += `
+                        <div class="space-y-2">
+                            <h4 class="text-xs font-bold text-stone-400">${cat.label}:</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${catButtons || '<span class="text-[10px] text-stone-400">אין פריטים בקטגוריה זו</span>'}
+                            </div>
+                        </div>
+                    `;
+            });
+        }
+
+        // עדכון חריץ בודד בקולב
+        function updateSlotHTML(slotId, selectedItem, placeholderText) {
+            const slot = document.getElementById(`slot-${slotId}`);
+            if (selectedItem) {
+                const imageHTML = selectedItem.isPlaceholder
+                    ? renderPlaceholderSVG(selectedItem.imageType, selectedItem.color)
+                    : `<img src="${selectedItem.image}" class="max-h-full max-w-full object-contain">`;
+
+                slot.innerHTML = `
+                        <div class="p-2 text-center w-full h-full flex flex-col justify-center items-center">
+                            ${imageHTML}
+                            <button onclick="removeItemFromSlot('${slotId}')" class="absolute top-1 left-1 bg-stone-900 text-white rounded-full p-0.5 text-[8px] w-4 h-4 flex items-center justify-center">✕</button>
+                        </div>
+                    `;
+            } else {
+                slot.innerHTML = `<span class="text-[10px] text-stone-400">${placeholderText}</span>`;
+            }
+        }
+
+        // הסרת פריט מחריץ הקולב
+        function removeItemFromSlot(slotId) {
+            if (slotId === 'tops') selectedTop = null;
+            if (slotId === 'bottoms') selectedBottom = null;
+            if (slotId === 'shoes') selectedShoes = null;
+            if (slotId === 'accessories') selectedAccessory = null;
+            renderBuilder();
+        }
+
+        // בחירה/ביטול בחירה מהירה של פריט בבונה
+        function toggleSelectBuilderItem(itemId) {
+            const item = items.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (item.category === 'tops') {
+                selectedTop = (selectedTop?.id === item.id) ? null : item;
+            } else if (item.category === 'bottoms') {
+                selectedBottom = (selectedBottom?.id === item.id) ? null : item;
+            } else if (item.category === 'shoes') {
+                selectedShoes = (selectedShoes?.id === item.id) ? null : item;
+            } else if (item.category === 'accessories') {
+                selectedAccessory = (selectedAccessory?.id === item.id) ? null : item;
+            }
+
+            renderBuilder();
+        }
+
+        // רינדור הלוקים השמורים והתיקיות
+        function renderLooks() {
+            // 1. עדכון פילטרים
+            const filtersContainer = document.getElementById('folder-filters-container');
+            filtersContainer.innerHTML = '';
+            folders.forEach(f => {
+                const isSelected = selectedFolderFilter === f;
+                filtersContainer.innerHTML += `
+                        <button onclick="setFolderFilter('${f}')" class="px-4 py-2 rounded-full text-xs font-bold transition-all ${isSelected ? 'bg-stone-900 text-white' : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'}">
+                            ${f === 'הכל' ? '📁 כל התיקיות' : `📁 ${f}`}
+                        </button>
+                    `;
+            });
+
+            // 2. עדכון רשת הלוקים
+            const looksGrid = document.getElementById('saved-looks-grid');
+            looksGrid.innerHTML = '';
+
+            const filteredLooks = selectedFolderFilter === 'הכל' ? looks : looks.filter(l => l.folder === selectedFolderFilter);
+
+            if (filteredLooks.length === 0) {
+                looksGrid.innerHTML = `
+                        <div class="col-span-1 md:col-span-2 text-center py-12 bg-white rounded-2xl border border-stone-200 p-6">
+                            <i class="fa-solid fa-shirt text-stone-300 text-3xl mb-3"></i>
+                            <h4 class="font-bold text-stone-700">אין לוקים שמורים בתיקייה זו</h4>
+                            <p class="text-xs text-stone-400">הרכיבי שילוב בגדים בטאב 'חדר הלבשה' ושמרי אותו!</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            filteredLooks.forEach(look => {
+                const topItem = items.find(i => i.id === look.items.tops);
+                const bottomItem = items.find(i => i.id === look.items.bottoms);
+                const shoesItem = items.find(i => i.id === look.items.shoes);
+                const accessoryItem = items.find(i => i.id === look.items.accessories);
+
+                const getThumbnail = (item) => {
+                    if (!item) return '-';
+                    return item.isPlaceholder
+                        ? renderPlaceholderSVG(item.imageType, item.color)
+                        : `<img src="${item.image}" class="max-h-full max-w-full object-contain">`;
+                };
+
+                looksGrid.innerHTML += `
+                        <div class="bg-white rounded-2xl border border-stone-200 p-4 space-y-3 relative">
+                            <div class="flex items-center justify-between border-b border-stone-100 pb-2">
+                              <div>
+                                <h4 class="font-bold text-sm text-stone-950">${look.name}</h4>
+                                <span class="text-[10px] text-stone-400 bg-stone-50 px-2.5 py-0.5 rounded-full inline-block mt-1">📁 ${look.folder}</span>
+                              </div>
+
+                              <div class="flex space-x-2 space-x-reverse">
+                                <button onclick="loadLookToBuilder('${look.id}')" class="text-[10px] bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-1.5 rounded-lg font-bold">
+                                  לבישה/עריכה
+                                </button>
+                                <button onclick="deleteLook('${look.id}')" class="text-stone-300 hover:text-red-500 transition-colors p-1">
+                                  <i class="fa-solid fa-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            <!-- תצוגת הבגדים בלוק -->
+                            <div class="grid grid-cols-4 gap-2">
+                              <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
+                                <span class="text-[9px] text-stone-400 block mb-1">חלק עליון</span>
+                                <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
+                                  ${getThumbnail(topItem)}
+                                </div>
+                              </div>
+
+                              <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
+                                <span class="text-[9px] text-stone-400 block mb-1">חלק תחתון</span>
+                                <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
+                                  ${getThumbnail(bottomItem)}
+                                </div>
+                              </div>
+
+                              <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
+                                <span class="text-[9px] text-stone-400 block mb-1">נעליים</span>
+                                <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
+                                  ${getThumbnail(shoesItem)}
+                                </div>
+                              </div>
+
+                              <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
+                                <span class="text-[9px] text-stone-400 block mb-1">אקססוריז</span>
+                                <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
+                                  ${getThumbnail(accessoryItem)}
+                                </div>
+                              </div>
+                            </div>
+                        </div>
+                    `;
+            });
+        }
+
+        // טעינת לוק שלם לתוך חדר ההלבשה
+        function loadLookToBuilder(lookId) {
+            const look = looks.find(l => l.id === lookId);
+            if (!look) return;
+
+            selectedTop = items.find(i => i.id === look.items.tops) || null;
+            selectedBottom = items.find(i => i.id === look.items.bottoms) || null;
+            selectedShoes = items.find(i => i.id === look.items.shoes) || null;
+            selectedAccessory = items.find(i => i.id === look.items.accessories) || null;
+
+            showToast("הלוק נטען בחדר ההלבשה!");
+            switchTab('builder');
+        }
+
+        // סינון תיקיות
+        function setFolderFilter(folderName) {
+            selectedFolderFilter = folderName;
+            renderLooks();
+        }
+
+    </script>
+</body>
+</html>

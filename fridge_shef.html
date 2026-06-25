@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שף המקרר - לבשל חכם ולמנוע בזבוז מזון!</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Rubik -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght=0,300..0,905;1,300..0,905&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Rubik', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Smooth custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-emerald-100 selection:text-emerald-950">
+
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm py-4 px-4 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white p-2.5 rounded-2xl shadow-md shadow-emerald-100">
+                <!-- Kitchen/Chef Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 18h12M12 2v4M6 14h12c0-3.3-2.7-6-6-6s-6 2.7-6 6z"/>
+                    <path d="M5 18a2 2 0 0 0-2 2v2h18v-2a2 2 0 0 0-2-2H5z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-black bg-gradient-to-l from-emerald-600 to-teal-800 bg-clip-text text-transparent tracking-tight">שף המקרר <span class="text-xs bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full mr-1.5">AI</span></h1>
+                <p class="text-[11px] text-slate-400 font-medium">לבשל חכם, לחסוך כסף ולמנוע בזבוז מזון יומיומי!</p>
+            </div>
+        </div>
+
+        <!-- Dynamic Eco Stats -->
+        <div class="flex items-center gap-4 bg-emerald-50/50 border border-emerald-100 rounded-2xl p-2 px-4">
+            <div class="text-center border-l border-emerald-100 pl-4">
+                <span class="block text-xs text-slate-400">כסף שנחסך</span>
+                <span id="stat-money" class="text-sm font-extrabold text-emerald-700">₪0</span>
+            </div>
+            <div class="text-center">
+                <span class="block text-xs text-slate-400">ארוחות שנוצרו</span>
+                <span id="stat-meals" class="text-sm font-extrabold text-teal-700">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY CONTAINER -->
+    <div class="max-w-7xl w-full mx-auto p-4 md:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- RIGHT PANEL: MY FRIDGE & PANTRY (7 COLS) -->
+        <section class="lg:col-span-7 space-y-6 flex flex-col">
+            
+            <!-- Add Item Fast Form -->
+            <div class="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                        <span>📥</span> להוסיף מוצר למקרר/מזווה
+                    </h2>
+                    
+                    <!-- AI Scanning Activation Button -->
+                    <button 
+                        type="button" 
+                        onclick="openScanModal()" 
+                        class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xs py-2 px-4 rounded-xl shadow-sm flex items-center gap-1.5 transition duration-150 transform hover:scale-[1.02]"
+                    >
+                        <span>📸 סריקה מהירה בצלם/AI</span>
+                    </button>
+                </div>
+
+                <form onsubmit="handleAddItem(event)" class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div class="md:col-span-5">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">שם המוצר:</label>
+                        <input 
+                            type="text" 
+                            id="input-name" 
+                            required 
+                            placeholder="לדוג': גבינה צהובה, עגבניות..." 
+                            class="w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs outline-none transition"
+                        />
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">קטגוריה:</label>
+                        <select 
+                            id="input-category" 
+                            class="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs outline-none transition"
+                        >
+                            <option value="ירקות ופירות">🥦 ירקות ופירות</option>
+                            <option value="מוצרי חלב">🧀 מוצרי חלב</option>
+                            <option value="בשר ודגים">🥩 בשר ודגים</option>
+                            <option value="ביצים ומאפים">🥚 ביצים ומאפים</option>
+                            <option value="מזווה ורטבים">🥫 מזווה ורטבים</option>
+                            <option value="תבלינים ומלחים">🌶️ תבלינים ומלחים</option>
+                            <option value="מתוקים וחטיפים">🍭 מתוקים וחטיפים</option>
+                            <option value="אחר / עוד">✨ אחר / עוד</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-4">
+                        <label class="block text-[10px] font-bold text-slate-500 mb-1">פג תוקף ב-:</label>
+                        <input 
+                            type="date" 
+                            id="input-expiry" 
+                            required 
+                            class="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs outline-none transition text-right"
+                        />
+                    </div>
+
+                    <div class="md:col-span-12 flex justify-end pt-2">
+                        <button 
+                            type="submit" 
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2.5 px-6 rounded-xl shadow-sm hover:shadow transition flex items-center gap-2"
+                        >
+                            <span>➕ הכנס למקרר</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- The Fridge Dashboard -->
+            <div class="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100 flex-1 flex flex-col">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+                    <div>
+                        <h2 class="text-base font-black text-slate-800 flex items-center gap-2">
+                            <span>❄️</span> המקרר שלי (<span id="fridge-count">0</span> מוצרים)
+                        </h2>
+                        <p class="text-[11px] text-slate-400 mt-0.5">סמנו את המוצרים שתרצו לבשל איתם ולחצו על כפתור ה-AI משמאל!</p>
+                    </div>
+
+                    <!-- Category filter tabs -->
+                    <div class="flex items-center gap-1 overflow-x-auto pb-1.5 sm:pb-0 scrollbar-none max-w-full">
+                        <button onclick="filterFridge('all')" id="filter-all" class="bg-emerald-50 text-emerald-800 font-bold text-[10px] py-1.5 px-2.5 rounded-lg whitespace-nowrap">הכל</button>
+                        <button onclick="filterFridge('🥦')" id="filter-veg" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-[10px] py-1.5 px-2.5 rounded-lg whitespace-nowrap">🥦 ירקות</button>
+                        <button onclick="filterFridge('🧀')" id="filter-dairy" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-[10px] py-1.5 px-2.5 rounded-lg whitespace-nowrap">🧀 חלב</button>
+                        <button onclick="filterFridge('🥩')" id="filter-meat" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-[10px] py-1.5 px-2.5 rounded-lg whitespace-nowrap">🥩 בשר</button>
+                        <button onclick="filterFridge('🌶️')" id="filter-spices" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-[10px] py-1.5 px-2.5 rounded-lg whitespace-nowrap">🌶️ תבלינים</button>
+                        <button onclick="filterFridge('🍭')" id="filter-sweets" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-[10px] py-1.5 px-2.5 rounded-lg whitespace-nowrap">🍭 מתוקים</button>
+                        <button onclick="filterFridge('✨')" id="filter-other" class="bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-[10px] py-1.5 px-2.5 rounded-lg whitespace-nowrap">✨ עוד</button>
+                    </div>
+                </div>
+
+                <!-- Fridge Grid / List -->
+                <div id="fridge-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto max-h-[500px] pr-1">
+                    <!-- Loaded dynamically -->
+                </div>
+
+                <!-- Mass Action / Helper -->
+                <div class="mt-6 pt-4 border-t border-slate-100 flex flex-wrap justify-between items-center gap-3">
+                    <button 
+                        onclick="selectAllFridge(true)" 
+                        class="text-xs font-bold text-slate-500 hover:text-emerald-700 transition"
+                    >
+                        ✅ סמן את כל המקרר
+                    </button>
+                    <button 
+                        onclick="selectAllFridge(false)" 
+                        class="text-xs font-bold text-slate-500 hover:text-slate-700 transition"
+                    >
+                        🔲 נקה בחירות
+                    </button>
+                    <button 
+                        onclick="clearSpoiledItems()" 
+                        class="text-xs font-bold text-rose-600 hover:text-rose-800 transition"
+                    >
+                        🗑️ פנה פגי תוקף
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- LEFT PANEL: AI CHEF ENGINE & SHOPPING (5 COLS) -->
+        <section class="lg:col-span-5 space-y-6 flex flex-col">
+            
+            <!-- AI Chef Generator Card -->
+            <div class="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 text-white rounded-2xl p-5 md:p-6 shadow-md relative overflow-hidden flex flex-col">
+                <!-- Decorative background light -->
+                <div class="absolute -right-12 -bottom-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl"></div>
+                
+                <div class="relative z-10 space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">🧙‍♂️</span>
+                        <div>
+                            <h3 class="text-sm font-black text-emerald-400">שף ה-AI של Gemini</h3>
+                            <p class="text-[10px] text-slate-300">מתכונים מפתיעים ומותאמים בדיוק למה שיש לכם במקרר!</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/10 p-3 rounded-xl border border-white/5 space-y-2">
+                        <p class="text-[11px] text-slate-200">
+                            <strong>הוראות הפעלה:</strong>
+                        </p>
+                        <ol class="text-[10px] text-slate-300 list-decimal list-inside space-y-1">
+                            <li>בחרו סגנון ארוחה מועדף והגבלה דיאטטית למטה.</li>
+                            <li>סמנו ב-V מוצרים מהמקרר שברצונכם לשלב (אופציונלי).</li>
+                            <li>לחצו על כפתור יצירת המתכון וצפו בקסם קורה!</li>
+                        </ol>
+                    </div>
+
+                    <!-- Custom Prompt Modifiers -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[9px] font-bold text-emerald-400 mb-1">סגנון ארוחה:</label>
+                            <select id="recipe-style" class="w-full bg-white/10 border border-white/20 rounded-lg py-1.5 px-2 text-[10px] text-white focus:outline-none">
+                                <option class="text-slate-900" value="מהיר וקל">⚡ מהיר וקל (עד 20 דק')</option>
+                                <option class="text-slate-900" value="בריא ומזין">🥗 בריא ומזין</option>
+                                <option class="text-slate-900" value="מפנק ומושחת">🍔 מפנק ומושחת</option>
+                                <option class="text-slate-900" value="הפתעה שף">🧑‍🍳 הפתעת השף!</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-bold text-emerald-400 mb-1">הגבלה דיאטטית:</label>
+                            <select id="recipe-diet" class="w-full bg-white/10 border border-white/20 rounded-lg py-1.5 px-2 text-[10px] text-white focus:outline-none">
+                                <option class="text-slate-900" value="ללא מגבלות">אין מגבלות 🍽️</option>
+                                <option class="text-slate-900" value="צמחוני">צמחוני 🥑</option>
+                                <option class="text-slate-900" value="טבעוני">טבעוני 🌱</option>
+                                <option class="text-slate-900" value="ללא גלוטן">ללא גלוטן 🌾</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button 
+                        onclick="generateAIRecipe()"
+                        id="ai-btn"
+                        class="w-full bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-slate-950 font-black text-xs py-3 px-4 rounded-xl shadow-md transition duration-150 flex items-center justify-center gap-2"
+                    >
+                        <span>🧑‍🍳 צור מתכון מותאם אישית עם AI</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Recipe Outcome Box -->
+            <div id="recipe-view" class="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-slate-100 flex-1 flex flex-col min-h-[300px]">
+                <div class="text-center py-12 text-slate-400 flex flex-col items-center justify-center m-auto space-y-3" id="recipe-placeholder">
+                    <span class="text-4xl">🍲</span>
+                    <h4 class="font-bold text-xs text-slate-700">אין מתכון פעיל כרגע</h4>
+                    <p class="text-[10px] text-slate-400 max-w-xs leading-relaxed">
+                        סמנו לפחות מוצר אחד במקרר ולחצו על כפתור השף למעלה כדי לקבל כאן מתכון מדהים ומותאם אישית.
+                    </p>
+                </div>
+
+                <!-- AI Loading indicator -->
+                <div id="recipe-loading" class="hidden text-center py-12 m-auto space-y-4">
+                    <div class="relative w-12 h-12 mx-auto">
+                        <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                        <div class="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>
+                    </div>
+                    <p class="text-xs font-bold text-slate-700">שף ה-AI בוחן את המוצרים שלכם ורוקח קסמים...</p>
+                    <p class="text-[10px] text-slate-400 italic">זה עשוי לקחת עד 10 שניות, אנא המתינו</p>
+                </div>
+
+                <!-- Loaded AI Recipe -->
+                <div id="recipe-content" class="hidden space-y-4 text-slate-800">
+                    <div class="border-b border-slate-100 pb-3 flex justify-between items-start gap-4">
+                        <div>
+                            <span class="bg-emerald-100 text-emerald-800 font-extrabold text-[9px] py-0.5 px-2 rounded-full uppercase">מתכון AI מותאם אישית</span>
+                            <h3 id="recipe-title" class="text-base font-black text-slate-900 mt-1">כותרת המתכון</h3>
+                            <p id="recipe-description" class="text-[11px] text-slate-400 mt-0.5">תיאור קצר של המנה.</p>
+                        </div>
+                        <button onclick="resetRecipeView()" class="text-xs font-bold text-slate-400 hover:text-slate-600">✕ נקה</button>
+                    </div>
+
+                    <div class="flex items-center gap-4 text-[10px] bg-slate-50 p-2.5 rounded-xl text-slate-500 justify-around">
+                        <span id="recipe-time">🕒 זמן הכנה: 20 דק'</span>
+                        <span id="recipe-difficulty">🟢 קושי: קל</span>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h4 class="text-xs font-bold text-slate-800">🛒 מצרכים נדרשים:</h4>
+                        <ul id="recipe-ingredients" class="text-[11px] text-slate-600 list-disc list-inside space-y-1 pr-2">
+                            <!-- Dynamically loaded -->
+                        </ul>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <h4 class="text-xs font-bold text-slate-800">🧑‍🍳 שלבי הכנה:</h4>
+                        <ol id="recipe-steps" class="text-[11px] text-slate-600 list-decimal list-inside space-y-1.5 pr-2 leading-relaxed">
+                            <!-- Dynamically loaded -->
+                        </ol>
+                    </div>
+
+                    <!-- Eco/Savings congrats box -->
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center gap-3">
+                        <span class="text-2xl">🌱</span>
+                        <div>
+                            <h5 class="text-xs font-bold text-emerald-900">מנעתם בזבוז מזון בהצלחה!</h5>
+                            <p class="text-[10px] text-emerald-700">הכנת ארוחה זו חסכה לכם כ-30 שקלים ומנעה פליטת CO2 מיותרת.</p>
+                        </div>
+                    </div>
+
+                    <button 
+                        onclick="completeMeal()"
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5"
+                    >
+                        <span>✅ הכנתי את הארוחה הזו! (פנה את המוצרים שבחרתי מהמקרר)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Smart Shopping List -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                <h3 class="text-xs font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                    <span>🛒</span> רשימת קניות חכמה לחוסרים
+                </h3>
+
+                <form onsubmit="addShoppingItem(event)" class="flex gap-2 mb-3">
+                    <input 
+                        type="text" 
+                        id="shop-input" 
+                        required 
+                        placeholder="הוסיפו מוצר שחסר לכם..." 
+                        class="flex-1 bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl py-1.5 px-3 text-xs outline-none"
+                    />
+                    <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-1.5 px-4 rounded-xl shadow-sm transition">
+                        הוסף
+                    </button>
+                </form>
+
+                <ul id="shopping-container" class="space-y-2 max-h-[150px] overflow-y-auto pr-1">
+                    <!-- Loaded dynamically -->
+                </ul>
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- ==================== NEW: SMART AI PRODUCT SCANNER MODAL ==================== -->
+    <div id="scan-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-2xl border border-slate-100 text-center animate-slide-up space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3 text-right">
+                <div>
+                    <h3 class="text-base font-black text-slate-800 flex items-center gap-2">
+                        <span>📸</span> סורק מקרר ועגלת קניות חכם (Gemini Multi-Vision AI)
+                    </h3>
+                    <p class="text-[10px] text-slate-400">צלמו את כל המקרר או עגלת הקניות וה-AI יזהה את כל המוצרים השונים ותאריכי התפוגה שלהם בבת אחת!</p>
+                </div>
+                <button onclick="closeScanModal()" class="text-slate-400 hover:text-slate-600 text-sm">✕</button>
+            </div>
+
+            <!-- Image Selection & Camera View -->
+            <div id="scan-upload-area" class="border-2 border-dashed border-slate-200 hover:border-emerald-500/50 rounded-2xl p-6 transition duration-150 bg-slate-50 cursor-pointer flex flex-col items-center justify-center space-y-2" onclick="triggerFileInput()">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center text-xl">
+                    📸
+                </div>
+                <p class="text-xs font-bold text-slate-700">לחצו כאן לצילום המקרר/העגלה או העלאת תמונה</p>
+                <p class="text-[10px] text-slate-400">תמיכה בצילום מרובה פריטים / קבצי PNG, JPG</p>
+                <input 
+                    type="file" 
+                    id="scan-file-input" 
+                    accept="image/*" 
+                    capture="environment" 
+                    class="hidden" 
+                    onchange="handleScanFileSelect(event)"
+                />
+            </div>
+
+            <!-- Image Preview Frame -->
+            <div id="scan-preview-container" class="hidden relative rounded-2xl border border-slate-200 overflow-hidden max-h-[180px] bg-slate-100 flex items-center justify-center">
+                <img id="scan-preview-img" src="" class="max-h-[180px] object-contain max-w-full" alt="תצוגה מקדימה" />
+                <button onclick="resetScanUpload(event)" class="absolute top-2 left-2 bg-slate-900/80 hover:bg-slate-900 text-white rounded-full p-1.5 text-xs transition">
+                    ✕ החלף תמונה
+                </button>
+            </div>
+
+            <!-- Scanner Loading Bar -->
+            <div id="scan-loading" class="hidden py-4 text-center space-y-2">
+                <div class="relative w-10 h-10 mx-auto">
+                    <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin"></div>
+                </div>
+                <p class="text-xs font-bold text-slate-700 animate-pulse">מנתח את המקרר / העגלה ומזהה את כל המוצרים השונים... 🧠</p>
+                <p class="text-[10px] text-slate-400">זה עשוי לקחת כמה שניות, ה-AI מזהה עשרות פריטים ומחשב להם תאריכי תפוגה מותאמים.</p>
+            </div>
+
+            <!-- Smart Identified Result Confirmation Form -->
+            <div id="scan-results" class="hidden bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4 text-right space-y-3">
+                <div class="flex justify-between items-center border-b border-emerald-100 pb-2">
+                    <h4 class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                        <span>✨</span> רשימת המוצרים שזוהו במקרר/בעגלה (<span id="scanned-count">0</span>):
+                    </h4>
+                    <div class="flex gap-2">
+                        <button onclick="toggleAllScanned(true)" type="button" class="text-[10px] font-bold text-emerald-700 hover:underline">סמן הכל</button>
+                        <span class="text-slate-300">|</span>
+                        <button onclick="toggleAllScanned(false)" type="button" class="text-[10px] font-bold text-slate-500 hover:underline">נקה הכל</button>
+                    </div>
+                </div>
+                
+                <!-- Scrollable grid list of detected products -->
+                <div id="scanned-items-container" class="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                    <!-- Dynamic rows inserted here -->
+                </div>
+            </div>
+
+            <!-- Actions buttons -->
+            <div class="flex justify-end gap-2 border-t border-slate-100 pt-3">
+                <button onclick="closeScanModal()" class="bg-slate-100 text-slate-700 font-bold text-xs py-2 px-4 rounded-xl">
+                    ביטול
+                </button>
+                <button 
+                    id="scan-add-btn" 
+                    onclick="addScannedItemsToFridge()" 
+                    disabled 
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-5 rounded-xl disabled:opacity-40 transition shadow-sm"
+                >
+                    הכנס את המוצרים שנבחרו למקרר ❄️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN ALERT SYSTEM MODAL -->
+    <div id="alert-modal" class="hidden fixed inset-0 z-[100] bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl border border-slate-100 text-center animate-slide-up">
+            <div id="alert-emoji" class="text-4xl mb-2">🎉</div>
+            <h4 id="alert-title" class="text-sm font-black text-slate-800 mb-1">כותרת</h4>
+            <p id="alert-message" class="text-xs text-slate-500 leading-relaxed mb-4 whitespace-pre-line">הודעה</p>
+            <button
+                onclick="closeAlert()"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-5 rounded-lg transition"
+            >
+                הבנתי, תודה!
+            </button>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center border-t border-slate-800 text-xs mt-auto">
+        <p class="mb-1.5 text-slate-300 font-bold flex items-center justify-center gap-1.5">
+            <span>שף המקרר Intelligent Chef</span>
+            <span class="bg-emerald-500 text-slate-950 py-0.5 px-1.5 rounded text-[9px] font-black">AI App</span>
+        </p>
+        <p>פתרון יומיומי חכם לחיסכון בכסף, מניעת בזבוז ושמירה על כדור הארץ 🌍</p>
+    </footer>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // API CONFIGURATION FOR GEMINI INTERACTION
+        const apiKey = ""; // Environment automatically populates the API key in the background
+        
+        // MOCK SEED PRODUCTS FOR FIRST-TIME ENTRY
+        const INITIAL_FRIDGE = [
+            { id: '1', name: 'גבינה בולגרית', category: 'מוצרי חלב', expiry: getOffsetDate(1), checked: true },
+            { id: '2', name: 'עגבניות שרי', category: 'ירקות ופירות', expiry: getOffsetDate(2), checked: true },
+            { id: '3', name: 'חזה עוף מבושל', category: 'בשר ודגים', expiry: getOffsetDate(-1), checked: false }, // Spoiled
+            { id: '4', name: 'ביצים חופש', category: 'ביצים ומאפים', expiry: getOffsetDate(8), checked: false },
+            { id: '5', name: 'לחם כוסמין', category: 'ביצים ומאפים', expiry: getOffsetDate(4), checked: false },
+            { id: '6', name: 'פפריקה מתוקה', category: 'תבלינים ומלחים', expiry: getOffsetDate(365), checked: true },
+            { id: '7', name: 'שוקולד צ׳יפס', category: 'מתוקים וחטיפים', expiry: getOffsetDate(60), checked: false },
+            { id: '8', name: 'בצל סגול', category: 'ירקות ופירות', expiry: getOffsetDate(14), checked: false }
+        ];
+
+        const INITIAL_SHOPPING = [
+            { id: 'shop_1', name: 'שמן זית איכותי' },
+            { id: 'shop_2', name: 'שום טרי' }
+        ];
+
+        // GLOBAL APPLICATION STATE
+        let state = {
+            fridge: [],
+            shopping: [],
+            currentFilter: 'all',
+            moneySaved: 0,
+            mealsCreated: 0,
+            scannedItems: [] // Added scannedItems to store results of entire fridge or shopping cart
+        };
+
+        // DATES UTILITY FOR OFFSETS
+        function getOffsetDate(days) {
+            const d = new Date();
+            d.setDate(d.getDate() + days);
+            return d.toISOString().split('T')[0];
+        }
+
+        // LOAD FROM LOCALSTORAGE / BOOTSTRAP STATE
+        function initApp() {
+            const savedFridge = localStorage.getItem('chef_fridge');
+            const savedShopping = localStorage.getItem('chef_shopping');
+            const savedSavedMoney = localStorage.getItem('chef_money');
+            const savedMeals = localStorage.getItem('chef_meals');
+
+            state.fridge = savedFridge ? JSON.parse(savedFridge) : [...INITIAL_FRIDGE];
+            state.shopping = savedShopping ? JSON.parse(savedShopping) : [...INITIAL_SHOPPING];
+            state.moneySaved = savedSavedMoney ? parseInt(savedSavedMoney) : 0;
+            state.mealsCreated = savedMeals ? parseInt(savedMeals) : 0;
+
+            // Normalize values just in case
+            if (!Array.isArray(state.fridge)) state.fridge = [...INITIAL_FRIDGE];
+            if (!Array.isArray(state.shopping)) state.shopping = [...INITIAL_SHOPPING];
+
+            refreshUI();
+        }
+
+        // SAVE STATE TO BROWSER
+        function saveState() {
+            localStorage.setItem('chef_fridge', JSON.stringify(state.fridge));
+            localStorage.setItem('chef_shopping', JSON.stringify(state.shopping));
+            localStorage.setItem('chef_money', state.moneySaved.toString());
+            localStorage.setItem('chef_meals', state.mealsCreated.toString());
+        }
+
+        // REFRESH ENTIRE DISPLAY
+        function refreshUI() {
+            renderFridge();
+            renderShopping();
+            updateStats();
+        }
+
+        // UPDATE ECO STATS DASHBOARD
+        function updateStats() {
+            document.getElementById('stat-money').innerText = `₪${state.moneySaved}`;
+            document.getElementById('stat-meals').innerText = state.mealsCreated;
+            document.getElementById('fridge-count').innerText = state.fridge.length;
+        }
+
+        // RENDER FRIDGE ITEMS GRID
+        function renderFridge() {
+            const container = document.getElementById('fridge-container');
+            container.innerHTML = '';
+
+            const filtered = state.fridge.filter(item => {
+                if (state.currentFilter === 'all') return true;
+                if (state.currentFilter === '🥦') return item.category === 'ירקות ופירות';
+                if (state.currentFilter === '🧀') return item.category === 'מוצרי חלב';
+                if (state.currentFilter === '🥩') return item.category === 'בשר ודגים';
+                if (state.currentFilter === '🌶️') return item.category === 'תבלינים ומלחים';
+                if (state.currentFilter === '🍭') return item.category === 'מתוקים וחטיפים';
+                if (state.currentFilter === '✨') return item.category === 'אחר / עוד';
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-10 text-slate-400">
+                        <span class="text-3xl block mb-2">🥬</span>
+                        <p class="font-bold text-xs text-slate-600">המקרר ריק בקטגוריה הזו</p>
+                        <p class="text-[10px] text-slate-400">הוסיפו מוצרים חדשים למעלה כדי להתחיל!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort products by expiry date (urgent items first)
+            const sorted = [...filtered].sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
+
+            sorted.forEach(item => {
+                const daysRemaining = calculateDaysRemaining(item.expiry);
+                
+                // Expiry Visual cues
+                let statusBg = "bg-emerald-50 border-emerald-100 text-emerald-800";
+                let statusLabel = `נותרו עוד ${daysRemaining} ימים`;
+                
+                if (daysRemaining < 0) {
+                    statusBg = "bg-rose-50 border-rose-100 text-rose-800 font-extrabold";
+                    statusLabel = "⚠️ פג תוקף!";
+                } else if (daysRemaining === 0) {
+                    statusBg = "bg-amber-100 border-amber-200 text-amber-900 font-bold animate-pulse";
+                    statusLabel = "⏳ לנצל היום!";
+                } else if (daysRemaining <= 2) {
+                    statusBg = "bg-amber-50 border-amber-100 text-amber-800";
+                    statusLabel = `נותרו ${daysRemaining} ימים`;
+                }
+
+                // Category decoration emoji
+                let catEmoji = '📦';
+                if (item.category === 'ירקות ופירות') catEmoji = '🥦';
+                else if (item.category === 'מוצרי חלב') catEmoji = '🧀';
+                else if (item.category === 'בשר ודגים') catEmoji = '🥩';
+                else if (item.category === 'ביצים ומאפים') catEmoji = '🍞';
+                else if (item.category === 'מזווה ורטבים') catEmoji = '🥫';
+                else if (item.category === 'תבלינים ומלחים') catEmoji = '🌶️';
+                else if (item.category === 'מתוקים וחטיפים') catEmoji = '🍭';
+                else if (item.category === 'אחר / עוד') catEmoji = '✨';
+
+                const card = document.createElement('div');
+                card.className = `border rounded-2xl p-3.5 transition duration-150 flex items-center justify-between cursor-pointer ${item.checked ? 'bg-emerald-50/20 border-emerald-500 shadow-sm' : 'bg-white border-slate-100 hover:border-slate-200'}`;
+                card.setAttribute('onclick', `toggleItemCheck('${item.id}', event)`);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input 
+                            type="checkbox" 
+                            ${item.checked ? 'checked' : ''} 
+                            class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                            onclick="event.stopPropagation(); toggleItemCheck('${item.id}')"
+                        />
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <span>${catEmoji}</span>
+                                <span>${escapeHtml(item.name)}</span>
+                            </h4>
+                            <span class="text-[9px] text-slate-400 font-medium">קטגוריה: ${item.category}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] py-1 px-2 rounded-lg border ${statusBg}">
+                            ${statusLabel}
+                        </span>
+                        <button 
+                            onclick="event.stopPropagation(); deleteFridgeItem('${item.id}')" 
+                            class="text-slate-300 hover:text-rose-600 transition p-1"
+                            title="מחק מוצר"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // RENDER SMART SHOPPING LIST
+        function renderShopping() {
+            const container = document.getElementById('shopping-container');
+            container.innerHTML = '';
+
+            if (state.shopping.length === 0) {
+                container.innerHTML = `
+                    <li class="text-center py-6 text-slate-400 text-[10px]">
+                        אין מוצרים ברשימת הקניות. כל הכבוד!
+                    </li>
+                `;
+                return;
+            }
+
+            state.shopping.forEach(item => {
+                const li = document.createElement('li');
+                li.className = "flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl p-2 px-3 text-xs";
+                li.innerHTML = `
+                    <span class="font-bold text-slate-700">${escapeHtml(item.name)}</span>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            onclick="transferToFridge('${item.id}')" 
+                            class="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-extrabold text-[9px] py-1 px-2 rounded-lg transition"
+                            title="קניתי מוצר זה, הכנס למקרר"
+                        >
+                            🧺 קניתי!
+                        </button>
+                        <button 
+                            onclick="deleteShoppingItem('${item.id}')" 
+                            class="text-slate-300 hover:text-rose-600 transition"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                `;
+                container.appendChild(li);
+            });
+        }
+
+        // CALCULATE DAYS REMAINING
+        function calculateDaysRemaining(expiryDateStr) {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            const expiry = new Date(expiryDateStr);
+            expiry.setHours(0,0,0,0);
+            
+            const diffTime = expiry - today;
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        // TOGGLE FRIDGE CHECKBOX
+        function toggleItemCheck(id, event) {
+            state.fridge = state.fridge.map(item => {
+                if (item.id === id) {
+                    return { ...item, checked: !item.checked };
+                }
+                return item;
+            });
+            saveState();
+            renderFridge();
+        }
+
+        // FILTER TABS HANDLER
+        function filterFridge(category) {
+            state.currentFilter = category;
+            
+            // Toggle active style
+            const filterTabs = ['all', 'veg', 'dairy', 'meat', 'spices', 'sweets', 'other'];
+            filterTabs.forEach(tab => {
+                const btn = document.getElementById(`filter-${tab}`);
+                if (btn) btn.className = "bg-slate-50 text-slate-600 hover:bg-slate-100 font-bold text-[10px] py-1 px-2.5 rounded-lg whitespace-nowrap";
+            });
+
+            let activeId = 'filter-all';
+            if (category === '🥦') activeId = 'filter-veg';
+            else if (category === '🧀') activeId = 'filter-dairy';
+            else if (category === '🥩') activeId = 'filter-meat';
+            else if (category === '🌶️') activeId = 'filter-spices';
+            else if (category === '🍭') activeId = 'filter-sweets';
+            else if (category === '✨') activeId = 'filter-other';
+
+            const activeBtn = document.getElementById(activeId);
+            if (activeBtn) {
+                activeBtn.className = "bg-emerald-50 text-emerald-800 font-bold text-[10px] py-1 px-2.5 rounded-lg whitespace-nowrap";
+            }
+
+            renderFridge();
+        }
+
+        // ADD NEW FRIDGE ITEM
+        function handleAddItem(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('input-name').value.trim();
+            const category = document.getElementById('input-category').value;
+            const expiry = document.getElementById('input-expiry').value;
+
+            if (!name || !expiry) return;
+
+            const newItem = {
+                id: 'item_' + Date.now(),
+                name: name,
+                category: category,
+                expiry: expiry,
+                checked: true // Check immediately for convenient cooking
+            };
+
+            state.fridge.push(newItem);
+            saveState();
+            
+            // Clear fields except categories
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-expiry').value = '';
+
+            refreshUI();
+            showCustomAlert("נוסף בהצלחה!", `הכנסנו את "${name}" למקרר. אל תשכחו להשתמש בו לפני שיפוג תוקפו!`, "success");
+        }
+
+        // DELETE FRIDGE ITEM
+        function deleteFridgeItem(id) {
+            state.fridge = state.fridge.filter(item => item.id !== id);
+            saveState();
+            refreshUI();
+        }
+
+        // BULK SELECTIONS
+        function selectAllFridge(val) {
+            state.fridge = state.fridge.map(item => ({ ...item, checked: val }));
+            saveState();
+            renderFridge();
+        }
+
+        // CLEAR SPOILED ITEMS (ECO ACTION)
+        function clearSpoiledItems() {
+            const spoiled = state.fridge.filter(item => calculateDaysRemaining(item.expiry) < 0);
+            if (spoiled.length === 0) {
+                showCustomAlert("המקרר נקי! 🥦", "אין לכם מוצרים שפג תוקפם כרגע. כל הכבוד!", "success");
+                return;
+            }
+
+            state.fridge = state.fridge.filter(item => calculateDaysRemaining(item.expiry) >= 0);
+            saveState();
+            refreshUI();
+            showCustomAlert("ניקיון בוצע! 🧹", `פיניתם בהצלחה ${spoiled.length} מוצרים שפג תוקפם. בפעם הבאה, נסו לבשל איתם מוקדם יותר!`, "warning");
+        }
+
+        // ADD SHOPPING ITEM
+        function addShoppingItem(e) {
+            e.preventDefault();
+            const name = document.getElementById('shop-input').value.trim();
+            if (!name) return;
+
+            const newItem = {
+                id: 'shop_' + Date.now(),
+                name: name
+            };
+
+            state.shopping.push(newItem);
+            saveState();
+            document.getElementById('shop-input').value = '';
+            renderShopping();
+        }
+
+        // DELETE SHOPPING ITEM
+        function deleteShoppingItem(id) {
+            state.shopping = state.shopping.filter(item => item.id !== id);
+            saveState();
+            renderShopping();
+        }
+
+        // TRANSFER SHOPPING ITEM DIRECTLY TO THE FRIDGE
+        function transferToFridge(id) {
+            const matched = state.shopping.find(item => item.id === id);
+            if (!matched) return;
+
+            // Remove from shopping list
+            state.shopping = state.shopping.filter(item => item.id !== id);
+
+            // Add to fridge with a default 7 days offset
+            const newFridgeItem = {
+                id: 'item_trans_' + Date.now(),
+                name: matched.name,
+                category: 'מזווה ורטבים', // Default category
+                expiry: getOffsetDate(7),
+                checked: true
+            };
+
+            state.fridge.push(newFridgeItem);
+            saveState();
+            refreshUI();
+
+            showCustomAlert("איזה כיף! 🧺", `המוצר "${matched.name}" הועבר בהצלחה למקרר שלכם! הגדרנו לו תאריך תפוגה ברירת מחדל של שבוע מהיום.`, "success");
+        }
+
+        // ==================== REAL-TIME GEMINI AI RECIPE GENERATOR ====================
+
+        async function generateAIRecipe() {
+            // 1. Get checked ingredients (now optional!)
+            const selectedIngredients = state.fridge.filter(item => item.checked).map(item => item.name);
+
+            const recipeStyle = document.getElementById('recipe-style').value;
+            const recipeDiet = document.getElementById('recipe-diet').value;
+
+            // 2. Clear previous views and start loading
+            document.getElementById('recipe-placeholder').classList.add('hidden');
+            document.getElementById('recipe-content').classList.add('hidden');
+            const loadingEl = document.getElementById('recipe-loading');
+            loadingEl.classList.remove('hidden');
+
+            // 3. Craft Gemini System Instructions and Query with Strict Kosher and Compatibility rules
+            const systemPrompt = `You are a creative, professional master chef who specializes in helping families cook delicious, strictly KOSHER food (no mixing of meat and dairy, no non-kosher ingredients). Generate one highly creative, easy-to-follow, and appetizing recipe strictly in Hebrew language.
+            
+            Crucial Instructions:
+            1. The recipe MUST be strictly Kosher (כשר). Absolutely DO NOT mix meat (בשר/עוף) and dairy (חלב/גבינות/חמאה) products under any circumstances. If the user selected both meat and dairy ingredients, intelligently select only ONE of those categories, or make a Parve (פרווה) / Vegetarian recipe using only matching ingredients.
+            2. DO NOT USE ALL the selected ingredients if they do not fit together! Only select and combine ingredients that complement each other perfectly in flavor, texture, and style. Leave out incompatible ingredients (for example, do not mix sweet chocolate chips in savory garlic dishes, or spicy seasoning in delicate fruit desserts).
+            
+            The response must be in structured JSON format matching this schema strictly:
+            {
+                "title": "String (engaging recipe name in Hebrew)",
+                "description": "String (short appetizing sentence in Hebrew)",
+                "prepTime": "String (e.g., '15 דק'')",
+                "difficulty": "String (e.g., 'קל' or 'בינוני')",
+                "ingredients": ["Array of Strings (measured ingredients in Hebrew)"],
+                "steps": ["Array of Strings (numbered cooking steps in Hebrew)"]
+            }`;
+
+            let userQuery = "";
+            if (selectedIngredients.length > 0) {
+                userQuery = `בנה מתכון כשר (עם שמירה קפדנית על כשרות והפרדת בשר וחלב), יצירתי וטעים המשלב חלק מהמצרכים הבאים מהמקרר שלי: ${selectedIngredients.join(', ')}. 
+                שים לב היטב: אל תשתמש בכל המצרכים שסופקו אם הם אינם מתאימים זה לזה! בחר רק את אלו שמשתלבים מצוין ביחד מבחינת טעמים. `;
+            } else {
+                userQuery = `בנה מתכון כשר, יצירתי וטעים המבוסס על מצרכים נפוצים ונגישים שיש בכל בית ומזווה. `;
+            }
+            userQuery += `סגנון מועדף: ${recipeStyle}. 
+            מגבלת תזונה: ${recipeDiet}. 
+            החזר בפורמט JSON בלבד בעברית תקינה ומגרה.`;
+
+            // 4. API Request using exponential backoff wrapper
+            try {
+                const recipeData = await fetchAIRecipeWithBackoff(systemPrompt, userQuery);
+                
+                // 5. Render output
+                if (recipeData) {
+                    displayRecipe(recipeData);
+                } else {
+                    throw new Error("Empty AI result");
+                }
+            } catch (err) {
+                console.error("Gemini call failed:", err);
+                showCustomAlert("תקלה בתקשורת ❌", "שף ה-AI שלנו עסוק כרגע, אך המצאנו עבורכם מתכון חלופי מזין וטעים!", "error");
+                
+                // Load generic beautiful fallback recipe based on selection, style and diet
+                const fallbackRecipe = getFallbackRecipe(selectedIngredients, recipeStyle, recipeDiet);
+                displayRecipe(fallbackRecipe);
+            } finally {
+                loadingEl.classList.add('hidden');
+            }
+        }
+
+        // GEMINI CALL WRAPPER WITH RETRIES AND EXPONENTIAL BACKOFF
+        async function fetchAIRecipeWithBackoff(systemPrompt, query, retries = 5, delay = 1000) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: query }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: { 
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            title: { type: "STRING" },
+                            description: { type: "STRING" },
+                            prepTime: { type: "STRING" },
+                            difficulty: { type: "STRING" },
+                            ingredients: { type: "ARRAY", items: { type: "STRING" } },
+                            steps: { type: "ARRAY", items: { type: "STRING" } }
+                        },
+                        required: ["title", "description", "prepTime", "difficulty", "ingredients", "steps"]
+                    }
+                }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const json = await response.json();
+                        const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (rawText) {
+                            return JSON.parse(rawText);
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Attempt ${i + 1} failed. Retrying...`);
+                }
+                // Wait for exponential delay
+                await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+            }
+            return null;
+        }
+
+        // RENDER OBTAINED RECIPE INFO
+        function displayRecipe(data) {
+            document.getElementById('recipe-placeholder').classList.add('hidden');
+            document.getElementById('recipe-loading').classList.add('hidden');
+            
+            const contentEl = document.getElementById('recipe-content');
+            contentEl.classList.remove('hidden');
+
+            document.getElementById('recipe-title').innerText = data.title;
+            document.getElementById('recipe-description').innerText = data.description;
+            document.getElementById('recipe-time').innerText = `🕒 זמן הכנה: ${data.prepTime}`;
+            document.getElementById('recipe-difficulty').innerText = `🟢 קושי: ${data.difficulty}`;
+
+            const ingredientsContainer = document.getElementById('recipe-ingredients');
+            ingredientsContainer.innerHTML = '';
+            data.ingredients.forEach(ing => {
+                const li = document.createElement('li');
+                li.innerText = ing;
+                ingredientsContainer.appendChild(li);
+            });
+
+            const stepsContainer = document.getElementById('recipe-steps');
+            stepsContainer.innerHTML = '';
+            data.steps.forEach(step => {
+                const li = document.createElement('li');
+                li.innerText = step;
+                stepsContainer.appendChild(li);
+            });
+        }
+
+        // RESET VIEW BACK TO BLANK PLACEHOLDER
+        function resetRecipeView() {
+            document.getElementById('recipe-content').classList.add('hidden');
+            document.getElementById('recipe-loading').classList.add('hidden');
+            document.getElementById('recipe-placeholder').classList.remove('hidden');
+        }
+
+        // SIMULATED FALLBACK RECIPE WHEN OFFLINE/ERROR (Ensuring Kosher & Compatibility rules apply here too)
+        function getFallbackRecipe(ingredients, style = "מהיר וקל", diet = "ללא מגבלות") {
+            const hasIngredients = ingredients && ingredients.length > 0;
+            
+            // Intelligently separate meat and dairy for kosher safety during backup calculation
+            let filteredIngredients = [...ingredients];
+            const hasMeat = ingredients.some(ing => ing.includes('עוף') || ing.includes('בשר') || ing.includes('נקניק') || ing.includes('דג'));
+            const hasDairy = ingredients.some(ing => ing.includes('גבינה') || ing.includes('חלב') || ing.includes('חמאה') || ing.includes('יוגורט') || ing.includes('שמנת'));
+            
+            if (hasMeat && hasDairy) {
+                // If both are present, prioritize meat or remove dairy to prevent mixing
+                filteredIngredients = ingredients.filter(ing => !ing.includes('גבינה') && !ing.includes('חלב') && !ing.includes('חמאה') && !ing.includes('יוגורט') && !ing.includes('שמנת'));
+            }
+            
+            let title = "מאפה מחבת שטח חם ומנחם 🍳";
+            let description = "הפתרון המושלם לחיבור שאריות מתאימות וכשרות מהמקרר שלכם לארוחה חמה ב-10 דקות!";
+            let prepTime = "15 דק'";
+            let difficulty = "קל מאוד";
+            let ingList = [];
+            let stepsList = [];
+
+            if (diet === "טבעוני") {
+                title = "תבשיל קארי ירקות וגרגרי חומוס מהיר 🍛";
+                description = "מנה טבעונית עשירה, חמה ומנחמת שמכינים בסיר אחד ממה שיש במזווה.";
+                ingList = [
+                    filteredIngredients.length > 0 ? `${filteredIngredients.slice(0, 3).join(', ')} חתוכים` : "לקט ירקות (בצל, גזר, קישוא)",
+                    "קופסת שימורי גרגרי חומוס מבושלים",
+                    "פחית קרם קוקוס (400 מ\"ל)",
+                    "כף תבלין קארי צהוב, מלח ופלפל",
+                    "כף שמן לטיגון"
+                ];
+                stepsList = [
+                    "מחממים שמן בסיר בינוני ומטגנים את הירקות המתאימים במשך 5 דקות.",
+                    "מוסיפים את גרגרי החומוס המסוננים ואת תבלין הקארי, ומערבבים היטב למשך דקה.",
+                    "יוצקים את קרם הקוקוס, מביאים לרתיחה ומנמיכים את האש.",
+                    "מבשלים כ-10 דקות על אש נמוכה עד שהרוטב מסמיך והירקות רכים.",
+                    "מגישים חם, מומלץ לצד אורז לבן!"
+                ];
+            } else if (diet === "צמחוני") {
+                title = "שקשוקה ביתית משודרגת ומפנקת 🍅";
+                description = "השקשוקה הקלאסית שכולם אוהבים, עשירה בטעמים וקלה להכנה.";
+                ingList = [
+                    filteredIngredients.length > 0 ? `${filteredIngredients.filter(i => !i.includes('עוף') && !i.includes('בשר')).slice(0, 3).join(', ')} משולבים במנה` : "עגבניות בשלות או פחית עגבניות מרוסקות",
+                    "3-4 ביצים טריות",
+                    "בצל קטן ו-3 שיני שום קצוצות",
+                    "כף פפריקה מתוקה, חצי כפית כמון, מלח ופלפל",
+                    "2 כפות שמן זית"
+                ];
+                stepsList = [
+                    "במחבת רחבה מחממים שמן זית ומטגנים בצל ושום עד להזהבה.",
+                    "מוסיפים את העגבניות והתבלינים, מערבבים ומבשלים על אש בינונית כ-8 דקות לקבלת רוטב סמיך.",
+                    "יוצרים גומות ברוטב וסודקים פנימה את הביצים.",
+                    "מכסים את המחבת ומבשלים על אש נמוכה עוד כ-5-7 דקות, עד שחלבון הביצה מתייצב אך החלמון נשאר נוזלי ומפנק.",
+                    "מגישים מיד למרכז השולחן עם לחם טרי!"
+                ];
+            } else {
+                title = "מאפה מחבת שטח חם ומנחם 🍳";
+                description = "הפתרון המושלם לחיבור שאריות מתאימות וכשרות מהמקרר שלכם לארוחה חמה ב-10 דקות!";
+                ingList = [
+                    filteredIngredients.length > 0 ? filteredIngredients.slice(0, 3).map(ing => `150 גרם של ${ing} חתוך דק`) : ["3 ביצים טרופות", "גבינה צהובה מגוררת", "ירקות נפוצים חתוכים"],
+                    "כף שמן זית",
+                    "מלח ופלפל לפי הטעם"
+                ].flat();
+                stepsList = [
+                    "מחממים את שמן הזית במחבת על אש בינונית.",
+                    filteredIngredients.length > 0 ? `מכניסים את החומרים שמתאימים זה לזה שבחרתם מהמקרר (${filteredIngredients.slice(0, 3).join(', ')}) ומקפיצים קלות במשך 3-4 דקות.` : "מכניסים ירקות או שאריות קיימות ומקפיצים קלות במחבת.",
+                    "יוצקים את הביצים הטרופות באופן אחיד מעל כל המצרכים במחבת.",
+                    "מכסים במכסה וממתינים 3 דקות עד שהביצים מתייצבות והגבינות נמסות.",
+                    "מגישים חם לצד חתיכת לחם טובה!"
+                ];
+            }
+
+            return {
+                title: title,
+                description: description,
+                prepTime: prepTime,
+                difficulty: difficulty,
+                ingredients: ingList,
+                steps: stepsList
+            };
+        }
+
+        // COMPLETE MEAL - ECO SAVING CELEBRATION!
+        function completeMeal() {
+            // Remove all checked ingredients from the fridge
+            const checkedIds = state.fridge.filter(item => item.checked).map(item => item.id);
+            state.fridge = state.fridge.filter(item => !item.checked);
+
+            // Increment economic impact metrics
+            state.moneySaved += 30; // Average of 30 NIS saved per home-cooked meal leftovers
+            state.mealsCreated += 1;
+
+            saveState();
+            refreshUI();
+            resetRecipeView();
+
+            showCustomAlert(
+                "כל הכבוד! 🎉🍳",
+                "בישלתם ארוחה מצוינת ומנעתם בזבוז מזון קריטי!\nהוספנו לכם 30 שקלים למדד החיסכון הכללי.",
+                "success"
+            );
+        }
+
+        // ==================== NEW FEATURE: GEMINI VISION SMART SCANNER ====================
+        
+        function openScanModal() {
+            // Reset modal states
+            document.getElementById('scan-upload-area').classList.remove('hidden');
+            document.getElementById('scan-preview-container').classList.add('hidden');
+            document.getElementById('scan-loading').classList.add('hidden');
+            document.getElementById('scan-results').classList.add('hidden');
+            document.getElementById('scan-file-input').value = "";
+            document.getElementById('scan-add-btn').disabled = true;
+            state.scannedItems = [];
+            
+            showModal('scan-modal');
+        }
+
+        function closeScanModal() {
+            hideModal('scan-modal');
+        }
+
+        function triggerFileInput() {
+            document.getElementById('scan-file-input').click();
+        }
+
+        function handleScanFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Display file preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('scan-preview-img').src = e.target.result;
+                document.getElementById('scan-upload-area').classList.add('hidden');
+                document.getElementById('scan-preview-container').classList.remove('hidden');
+                
+                // Automatically run Gemini Vision AI analysis
+                processImageWithAI(e.target.result, file.type);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetScanUpload(event) {
+            event.stopPropagation();
+            document.getElementById('scan-preview-container').classList.add('hidden');
+            document.getElementById('scan-results').classList.add('hidden');
+            document.getElementById('scan-upload-area').classList.remove('hidden');
+            document.getElementById('scan-file-input').value = "";
+            document.getElementById('scan-add-btn').disabled = true;
+            state.scannedItems = [];
+        }
+
+        async function processImageWithAI(base64DataUrl, mimeType) {
+            document.getElementById('scan-loading').classList.remove('hidden');
+            document.getElementById('scan-results').classList.add('hidden');
+            document.getElementById('scan-add-btn').disabled = true;
+
+            const base64Code = base64DataUrl.split(',')[1];
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            // Define API payload and system prompt to find multiple items
+            const promptText = `Analyze this photo of an entire refrigerator interior, pantry shelf, or grocery shopping cart.
+Your goal is to detect ALL individual food items, ingredients, vegetables, fruits, dairy products, meats, snacks, and beverages visible in the photo.
+Be extremely thorough and detect up to 15 different items if visible.
+
+For each detected item:
+1. Identify the name in clear, concise Hebrew (e.g., "מלפפון", "חלב קרטון 3%", "קוטג׳ 5%", "גבינה צהובה", "קטשופ", "עגבנייה").
+2. Match it strictly to one of these Hebrew categories: "ירקות ופירות" | "מוצרי חלב" | "בשר ודגים" | "ביצים ומאפים" | "מזווה ורטבים" | "תבלינים ומלחים" | "מתוקים וחטיפים" | "אחר / עוד".
+3. Intelligently estimate a realistic expiration date ("YYYY-MM-DD") starting from today (${todayStr}) depending on the product's type:
+   - Fresh greens / soft vegetables / fresh berries: 4-6 days.
+   - Hard vegetables (carrots, onions, potatoes): 14-21 days.
+   - Fresh dairy: 7-10 days.
+   - Milk cartons: 5-8 days.
+   - Hard cheeses: 14-30 days.
+   - Fresh meat/poultry: 3-5 days.
+   - Eggs: 14-21 days.
+   - Condiments / sauces / pantry items: 180-365 days.
+   - Sweets / snacks: 90-180 days.
+
+Return strictly a JSON response with this exact schema:
+{
+  "detected_items": [
+    {
+      "name": "שם המוצר בעברית",
+      "category": "קטגוריה מתאימה",
+      "expiry": "YYYY-MM-DD"
+    }
+  ]
+}`;
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: promptText },
+                        {
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Code
+                            }
+                        }
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json"
+                }
+            };
+
+            // Post with exponential backoff retries
+            let success = false;
+            let resultData = null;
+            let delay = 1000;
+
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const json = await response.json();
+                        const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (rawText) {
+                            resultData = JSON.parse(rawText);
+                            success = true;
+                            break;
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Attempt ${i+1} to process image failed. Retrying...`);
+                }
+                await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i)));
+            }
+
+            document.getElementById('scan-loading').classList.add('hidden');
+
+            if (success && resultData && Array.isArray(resultData.detected_items)) {
+                // Map results to scanned items array
+                state.scannedItems = resultData.detected_items.map((item, idx) => ({
+                    id: 'scanned_' + idx + '_' + Date.now(),
+                    name: item.name || "מוצר לא מזוהה",
+                    category: sanitizeCategory(item.category),
+                    expiry: item.expiry || todayStr,
+                    checked: true // selected by default
+                }));
+
+                renderScannedItems();
+                document.getElementById('scan-results').classList.remove('hidden');
+                document.getElementById('scan-add-btn').disabled = false;
+            } else {
+                showCustomAlert("שגיאה בסריקה ❌", "ה-AI לא הצליח לנתח את התמונה או לזהות פריטים מרובים. אנא ודאו שהמצלמה יציבה, האור בהיר, ונסו שוב.", "error");
+                resetScanUpload({ stopPropagation: () => {} });
+            }
+        }
+
+        // Map and sanitize AI returned category strings to strictly match defined values
+        function sanitizeCategory(aiCat) {
+            if (!aiCat) return "אחר / עוד";
+            const clean = aiCat.replace(/[🌱🥦🧀🥩🥚🥫🌶️🍭✨]/g, "").trim();
+            
+            const valid = ["ירקות ופירות", "מוצרי חלב", "בשר ודגים", "ביצים ומאפים", "מזווה ורטבים", "תבלינים ומלחים", "מתוקים וחטיפים", "אחר / עוד"];
+            for (let v of valid) {
+                if (clean.includes(v) || v.includes(clean)) return v;
+            }
+            return "אחר / עוד";
+        }
+
+        function renderScannedItems() {
+            const container = document.getElementById('scanned-items-container');
+            container.innerHTML = '';
+            document.getElementById('scanned-count').innerText = state.scannedItems.length;
+
+            if (state.scannedItems.length === 0) {
+                container.innerHTML = '<p class="text-center py-4 text-xs text-slate-400">לא זוהו פריטים. נסו שנית.</p>';
+                document.getElementById('scan-add-btn').disabled = true;
+                return;
+            }
+
+            state.scannedItems.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-2 bg-white border border-slate-100 rounded-xl shadow-sm text-right";
+                
+                row.innerHTML = `
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <input 
+                            type="checkbox" 
+                            ${item.checked ? 'checked' : ''} 
+                            onchange="toggleScannedItemCheck('${item.id}')"
+                            class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                        />
+                        <input 
+                            type="text" 
+                            value="${escapeHtml(item.name)}" 
+                            onchange="updateScannedItemName('${item.id}', this.value)"
+                            placeholder="שם המוצר"
+                            class="bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-xs font-bold text-slate-800 w-full sm:w-44 focus:bg-white focus:outline-none"
+                        />
+                    </div>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                        <select 
+                            onchange="updateScannedItemCategory('${item.id}', this.value)"
+                            class="bg-slate-50 border border-slate-200 rounded-lg py-1 px-1.5 text-[10px] text-slate-700 focus:outline-none focus:bg-white"
+                        >
+                            <option value="ירקות ופירות" ${item.category === 'ירקות ופירות' ? 'selected' : ''}>🥦 ירקות ופירות</option>
+                            <option value="מוצרי חלב" ${item.category === 'מוצרי חלב' ? 'selected' : ''}>🧀 מוצרי חלב</option>
+                            <option value="בשר ודגים" ${item.category === 'בשר ודגים' ? 'selected' : ''}>🥩 בשר ודגים</option>
+                            <option value="ביצים ומאפים" ${item.category === 'ביצים ומאפים' ? 'selected' : ''}>🥚 ביצים ומאפים</option>
+                            <option value="מזווה ורטבים" ${item.category === 'מזווה ורטבים' ? 'selected' : ''}>🥫 מזווה ורטבים</option>
+                            <option value="תבלינים ומלחים" ${item.category === 'תבלינים ומלחים' ? 'selected' : ''}>🌶️ תבלינים ומלחים</option>
+                            <option value="מתוקים וחטיפים" ${item.category === 'מתוקים וחטיפים' ? 'selected' : ''}>🍭 מתוקים וחטיפים</option>
+                            <option value="אחר / עוד" ${item.category === 'אחר / עוד' ? 'selected' : ''}>✨ אחר / עוד</option>
+                        </select>
+
+                        <input 
+                            type="date" 
+                            value="${item.expiry}" 
+                            onchange="updateScannedItemExpiry('${item.id}', this.value)"
+                            class="bg-slate-50 border border-slate-200 rounded-lg py-1 px-1.5 text-[10px] text-slate-700 text-right focus:outline-none focus:bg-white"
+                        />
+
+                        <button 
+                            type="button" 
+                            onclick="removeScannedItem('${item.id}')"
+                            class="text-slate-300 hover:text-rose-600 transition text-sm px-1.5"
+                            title="הסר פריט"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Toggle state helpers
+        function toggleScannedItemCheck(id) {
+            state.scannedItems = state.scannedItems.map(item => 
+                item.id === id ? { ...item, checked: !item.checked } : item
+            );
+            updateScanButtonState();
+        }
+
+        function updateScannedItemName(id, value) {
+            state.scannedItems = state.scannedItems.map(item => 
+                item.id === id ? { ...item, name: value.trim() } : item
+            );
+        }
+
+        function updateScannedItemCategory(id, value) {
+            state.scannedItems = state.scannedItems.map(item => 
+                item.id === id ? { ...item, category: value } : item
+            );
+        }
+
+        function updateScannedItemExpiry(id, value) {
+            state.scannedItems = state.scannedItems.map(item => 
+                item.id === id ? { ...item, expiry: value } : item
+            );
+        }
+
+        function removeScannedItem(id) {
+            state.scannedItems = state.scannedItems.filter(item => item.id !== id);
+            renderScannedItems();
+            updateScanButtonState();
+        }
+
+        function toggleAllScanned(value) {
+            state.scannedItems = state.scannedItems.map(item => ({ ...item, checked: value }));
+            renderScannedItems();
+            updateScanButtonState();
+        }
+
+        function updateScanButtonState() {
+            const hasChecked = state.scannedItems.some(item => item.checked);
+            document.getElementById('scan-add-btn').disabled = !hasChecked;
+        }
+
+        function addScannedItemsToFridge() {
+            const selectedItems = state.scannedItems.filter(item => item.checked);
+            if (selectedItems.length === 0) {
+                showCustomAlert("לא נבחרו מוצרים ⚠️", "אנא סמנו לפחות מוצר אחד להכנסה למקרר.", "warning");
+                return;
+            }
+
+            selectedItems.forEach(item => {
+                const newItem = {
+                    id: 'item_scan_' + Date.now() + Math.random().toString(36).substring(2, 5),
+                    name: item.name,
+                    category: item.category,
+                    expiry: item.expiry,
+                    checked: true
+                };
+                state.fridge.push(newItem);
+            });
+
+            saveState();
+            refreshUI();
+            closeScanModal();
+
+            showCustomAlert("המוצרים נוספו למקרר! 🎉", `הוספנו בהצלחה ${selectedItems.length} מוצרים שנסרקו מהמקרר / מהעגלה! בתיאבון!`, "success");
+        }
+
+        // ==================== CUSTOM ALERTS & MODALS ====================
+
+        function showCustomAlert(title, message, type = 'success') {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = message;
+            
+            const emojiEl = document.getElementById('alert-emoji');
+            if (type === 'success') emojiEl.innerText = '🎉';
+            else if (type === 'warning') emojiEl.innerText = '⚠️';
+            else if (type === 'error') emojiEl.innerText = '❌';
+
+            showModal('alert-modal');
+        }
+
+        function closeAlert() {
+            hideModal('alert-modal');
+        }
+
+        function showModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function hideModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // SECURE ESCAPER
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // FIRE ON RUN
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyBuddy - פלטפורמת למידה שיתופית לחטיבת הביניים</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Hebrew (Rubik) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+        }
+        /* Custom scrollbar for beautiful UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Canvas utility class */
+        .canvas-container {
+            position: relative;
+            touch-action: none; /* Prevents scrolling when drawing on touch screens */
+        }
+    </style>
+</head>
+<body class="h-full text-slate-800 flex flex-col antialiased">
+
+    <!-- התראות פופ-אפ עליונות (Toast Notification) -->
+    <div id="toast-container" class="fixed top-4 left-4 right-4 md:left-auto md:w-96 z-50 pointer-events-none transition-all duration-300 transform translate-y-[-150%] opacity-0">
+        <div class="bg-indigo-600 text-white px-5 py-4 rounded-2xl shadow-2xl flex items-center justify-between border border-indigo-500 pointer-events-auto">
+            <div class="flex items-center gap-3">
+                <span class="text-xl" id="toast-icon">🔔</span>
+                <p id="toast-message" class="font-medium text-sm md:text-base"></p>
+            </div>
+            <button onclick="hideToast()" class="text-white hover:text-indigo-200 transition-colors ml-2 p-1 text-sm font-bold">✕</button>
+        </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- מסך התחברות (Login / Register Screen) -->
+    <!-- ======================================= -->
+    <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-tr from-indigo-100 via-white to-pink-100">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full transition-all duration-300">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white text-3xl mb-3 shadow-lg shadow-indigo-200">
+                    🤝
+                </div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">StudyBuddy</h1>
+                <p class="text-slate-500 mt-2 text-sm">הכוח ללמוד, להצליח ולעזור ביחד בחטיבה</p>
+            </div>
+
+            <!-- טאבים להתחברות / הרשמה -->
+            <div class="flex bg-slate-100 p-1.5 rounded-xl mb-6">
+                <button onclick="setAuthMode('login')" id="btn-tab-login" class="flex-1 py-2 text-center rounded-lg text-sm font-semibold transition-all bg-white text-indigo-600 shadow-sm">
+                    התחברות
+                </button>
+                <button onclick="setAuthMode('register')" id="btn-tab-register" class="flex-1 py-2 text-center rounded-lg text-sm font-semibold transition-all text-slate-600 hover:text-slate-900">
+                    הרשמה לתלמיד
+                </button>
+            </div>
+
+            <form onsubmit="handleAuth(event)" class="space-y-4">
+                <!-- שדות של הרשמה בלבד -->
+                <div id="register-fields" class="hidden space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">שם מלא</label>
+                        <input id="auth-name" type="text" placeholder="לדוגמה: יובל לוי" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">כיתה</label>
+                            <select id="auth-grade" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="ז' 1">כיתה ז' 1</option>
+                                <option value="ז' 2">כיתה ז' 2</option>
+                                <option value="ח' 1" selected>כיתה ח' 1</option>
+                                <option value="ח' 2">כיתה ח' 2</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">המטרה שלי</label>
+                            <select id="auth-role" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white">
+                                <option value="seeker">מחפש עזרה</option>
+                                <option value="helper" selected>רוצה לעזור</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">אימייל (בית ספר או הורים)</label>
+                    <input id="auth-email" type="email" required placeholder="name@school.org" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">סיסמה סודית</label>
+                    <input id="auth-password" type="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+
+                <button type="submit" id="btn-submit-auth" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-indigo-100 hover:brightness-105 active:scale-[0.98] transition-all text-sm mt-2">
+                    להתחברות מהירה לאבטיפוס
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-xs text-slate-400">אבטיפוס StudyBuddy מותאם להצגה בכיתות ז' ו-ח' 🚀</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================= -->
+    <!-- הממשק הראשי (Main App Layout) -->
+    <!-- ======================================= -->
+    <div id="main-app" class="hidden flex-1 flex flex-col md:flex-row h-full overflow-hidden">
+        
+        <!-- סרגל צידי (Sidebar) -->
+        <aside class="w-full md:w-64 bg-white border-l border-slate-100 flex flex-col shrink-0">
+            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white flex items-center justify-center text-xl shadow-md shadow-indigo-100">
+                        🤝
+                    </div>
+                    <div>
+                        <h2 class="font-extrabold text-lg text-slate-900 tracking-tight">StudyBuddy</h2>
+                        <span class="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-bold uppercase tracking-wide">כיתות ז'-ח'</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- פרופיל קטן בסרגל הצידי -->
+            <div class="p-4 mx-3 my-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
+                <img id="user-avatar-sidebar" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" alt="פרופיל" class="w-11 h-11 rounded-full object-cover ring-2 ring-indigo-100 shadow-sm" />
+                <div class="overflow-hidden">
+                    <p id="user-name-sidebar" class="font-bold text-slate-900 text-sm truncate">טוען...</p>
+                    <p id="user-grade-sidebar" class="text-slate-500 text-xs">כיתה ח'</p>
+                    <div class="flex items-center gap-1 mt-1">
+                        <span class="text-xs bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded-full">🪙 <span id="user-coins-sidebar">120</span> נק׳ עזרה</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- כפתורי הניווט -->
+            <nav class="flex-1 px-3 space-y-1 overflow-y-auto">
+                <button onclick="switchPage('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all bg-indigo-50 text-indigo-600">
+                    <span>🏠</span> לוח בקרה ראשי
+                </button>
+                <button onclick="switchPage('buddies')" id="nav-buddies" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-50">
+                    <span>🔍</span> שותפי למידה
+                </button>
+                <button onclick="switchPage('forum')" id="nav-forum" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-50">
+                    <span>💬</span> פורום שיעורי בית
+                </button>
+                <button onclick="switchPage('chat')" id="nav-chat" class="nav-btn w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-50">
+                    <div class="flex items-center gap-3">
+                        <span>✉️</span> צ׳אט כיתתי
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-indigo-500 hidden" id="chat-notification-dot"></span>
+                </button>
+                <button onclick="switchPage('video')" id="nav-video" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-50">
+                    <span>🎥</span> שיחה ולוח שרטוט
+                </button>
+                <button onclick="switchPage('profile')" id="nav-profile" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-slate-600 hover:bg-slate-50">
+                    <span>⚙️</span> המקצועות והגדרות שלי
+                </button>
+            </nav>
+
+            <!-- כפתור התנתקות -->
+            <div class="p-4 border-t border-slate-100">
+                <button onclick="logout()" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-red-600 bg-red-50 hover:bg-red-100 transition-all">
+                    <span>↩️</span> התנתקות מהאבטיפוס
+                </button>
+            </div>
+        </aside>
+
+        <!-- אזור התוכן המרכזי -->
+        <main class="flex-1 flex flex-col overflow-y-auto h-full">
+            
+            <!-- סרגל עליון (Header) -->
+            <header class="bg-white border-b border-slate-100 py-4 px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
+                <div>
+                    <h1 id="page-title" class="text-xl font-extrabold text-slate-900">שלום, חבר! 👋</h1>
+                    <p id="page-subtitle" class="text-xs text-slate-400 mt-0.5">מה נלמד ועל מה נתאמן היום?</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="text-xs text-slate-500 hidden md:inline">הסטטוס שלי היום:</span>
+                    <button onclick="toggleUserRole()" id="btn-status-toggle" class="px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span id="txt-status">פנוי לעזור לחברים</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- מכולת הדפים (Page Panels Container) -->
+            <div class="p-6 space-y-6 flex-1">
+
+                <!-- ======================================= -->
+                <!-- דף 1: לוח בקרה ראשי (Dashboard) -->
+                <!-- ======================================= -->
+                <div id="panel-dashboard" class="page-panel space-y-6">
+                    <!-- באנר כיתתי -->
+                    <div class="bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 text-white rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-32 h-32 bg-white/10 rounded-full -translate-x-10 -translate-y-10 blur-xl"></div>
+                        <div class="absolute bottom-0 right-1/4 w-48 h-48 bg-pink-500/10 rounded-full blur-2xl"></div>
+                        
+                        <div class="relative z-10 max-w-xl">
+                          <span class="bg-white/20 text-white text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">אבטיפוס חטיבת ביניים 🏫</span>
+                          <h2 class="text-2xl md:text-3xl font-extrabold mt-3 leading-tight">לומדים יחד, מבינים ומצליחים במבחנים!</h2>
+                          <p class="text-indigo-100 text-sm mt-2 leading-relaxed">
+                            ברוך הבא ל-StudyBuddy. כאן תוכל למצוא תלמידים משכבת כיתות ז'-ח' שיכולים להסביר לך נושאים קשים במדעים או אנגלית, או לקבל נקודות עזרה על ידי סיוע לחברים במקצועות החזקים שלך!
+                          </p>
+                          
+                          <div class="flex flex-wrap gap-3 mt-6">
+                            <button onclick="switchPage('buddies')" class="bg-white text-indigo-600 hover:bg-slate-50 font-bold px-5 py-2.5 rounded-xl text-xs shadow-md transition-all active:scale-[0.98]">
+                              🔍 מצא שותף עכשיו
+                            </button>
+                            <button onclick="switchPage('forum')" class="bg-indigo-700/50 hover:bg-indigo-700/70 text-white border border-indigo-400/30 font-bold px-5 py-2.5 rounded-xl text-xs transition-all">
+                              ❓ שאל שאלה בשיעורי בית
+                            </button>
+                          </div>
+                        </div>
+                    </div>
+
+                    <!-- כרטיסי סטטיסטיקה -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center justify-between shadow-sm">
+                          <div>
+                            <p class="text-slate-400 text-xs font-medium">תלמידים מחוברים כעת</p>
+                            <h3 id="stat-online-buddies" class="text-2xl font-black text-slate-900 mt-1">4 שותפים</h3>
+                          </div>
+                          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl">🟢</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center justify-between shadow-sm">
+                          <div>
+                            <p class="text-slate-400 text-xs font-medium">שאלות שממתינות להסבר</p>
+                            <h3 id="stat-pending-questions" class="text-2xl font-black text-slate-900 mt-1">טוען...</h3>
+                          </div>
+                          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl">❓</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center justify-between shadow-sm">
+                          <div>
+                            <p class="text-slate-400 text-xs font-medium">נקודות העזרה שצברתי בשכבה</p>
+                            <h3 class="text-2xl font-black text-slate-900 mt-1">🪙 <span class="user-coins-display">120</span></h3>
+                          </div>
+                          <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center text-xl">🏆</div>
+                        </div>
+                    </div>
+
+                    <!-- חלוקה ל-2 עמודות -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- שותפים מהשכבה -->
+                        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-extrabold text-slate-900 text-base">שותפים פנויים לעזרה מהשכבה</h3>
+                                <button onclick="switchPage('buddies')" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold">צפה בהכל ←</button>
+                            </div>
+                            <div id="dashboard-buddies-list" class="space-y-3 flex-1">
+                                <!-- ייווצר דינמית על ידי JS -->
+                            </div>
+                        </div>
+
+                        <!-- שאלות חמות מהפורום -->
+                        <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-extrabold text-slate-900 text-base">תרגילים אחרונים שהועלו</h3>
+                                <button onclick="switchPage('forum')" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold">לכל השאלות ←</button>
+                            </div>
+                            <div id="dashboard-forum-list" class="space-y-3 flex-1 bg-slate-50/50 p-3 rounded-2xl">
+                                <!-- ייווצר דינמית על ידי JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ======================================= -->
+                <!-- דף 2: מציאת שותף ללמידה (Buddies Directory) -->
+                <!-- ======================================= -->
+                <div id="panel-buddies" class="page-panel space-y-6 hidden">
+                    <!-- סננים וחיפוש -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- חיפוש חופשי -->
+                            <div class="relative">
+                                <input oninput="filterBuddies()" id="buddies-search" type="text" placeholder="חפש לפי שם תלמיד..." class="w-full pr-10 pl-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <span class="absolute right-3 top-3 text-slate-400 text-sm">🔍</span>
+                            </div>
+                            <!-- סינון מקצוע -->
+                            <select onchange="filterBuddies()" id="buddies-filter-subject" class="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="all">כל המקצועות בחטיבה</option>
+                                <option value="math">📐 מתמטיקה</option>
+                                <option value="english">🇬🇧 אנגלית</option>
+                                <option value="science">🧪 מדע וטכנולוגיה</option>
+                                <option value="history">📜 היסטוריה</option>
+                                <option value="hebrew">✍️ עברית ולשון</option>
+                                <option value="tech">💻 מחשבים וטכנולוגיה</option>
+                            </select>
+                            <!-- סינון סוג קשר -->
+                            <select onchange="filterBuddies()" id="buddies-filter-role" class="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="all">כולם (רוצים לעזור וצריכים עזרה)</option>
+                                <option value="helper">תלמידים שמציעים הסבר / עזרה</option>
+                                <option value="seeker">תלמידים שצריכים עזרה כרגע</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- רשת כרטיסי שותפים -->
+                    <div id="buddies-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- ייווצר דינמית על ידי JS -->
+                    </div>
+                </div>
+
+                <!-- ======================================= -->
+                <!-- דף 3: פורום שאלות ועזרה (Forum) -->
+                <!-- ======================================= -->
+                <div id="panel-forum" class="page-panel space-y-6 hidden">
+                    <!-- טופס הוספת שאלה חדשה -->
+                    <div class="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
+                        <h3 class="font-extrabold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                            <span>✏️</span> שאל שאלת עזרה בשיעורי הבית
+                        </h3>
+                        <form onsubmit="handleCreatePost(event)" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">כותרת השאלה (נושא ממוקד)</label>
+                                    <input id="new-post-title" type="text" required placeholder="לדוגמה: מחפש עזרה בסיכום הגורמים למהפכה התעשייתית בכיתה ח'" class="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">בחר מקצוע</label>
+                                    <select id="new-post-subject" class="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                                        <option value="math">📐 מתמטיקה</option>
+                                        <option value="english">🇬🇧 אנגלית</option>
+                                        <option value="science">🧪 מדע וטכנולוגיה</option>
+                                        <option value="history">📜 היסטוריה</option>
+                                        <option value="hebrew">✍️ עברית ולשון</option>
+                                        <option value="tech">💻 מחשבים וטכנולוגיה</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">פירוט השאלה או התרגיל</label>
+                                <textarea id="new-post-content" rows="3" required placeholder="רשום כאן את השאלה או העתק את התרגיל מדף העבודה של המורה." class="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                            </div>
+
+                            <div class="flex justify-end">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs shadow-md shadow-indigo-100 transition-all flex items-center gap-2">
+                                    <span>➕</span> פרסם בפורום שיעורי הבית
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- רשימת פוסטים ושאלות -->
+                    <div class="space-y-6">
+                        <h3 class="font-extrabold text-slate-950 text-base">שאלות פעילות מהשכבה</h3>
+                        <div id="forum-posts-container" class="space-y-6">
+                            <!-- ייווצר דינמית על ידי JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ======================================= -->
+                <!-- דף 4: צ'אט והתכתבות ישירה (Chat) -->
+                <!-- ======================================= -->
+                <div id="panel-chat" class="page-panel hidden">
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-xl flex flex-col md:flex-row h-[550px] overflow-hidden">
+                        <!-- רשימת שותפי צ'אט בצד -->
+                        <div class="w-full md:w-80 border-l border-slate-100 flex flex-col overflow-y-auto">
+                            <div class="p-4 border-b border-slate-50 bg-slate-50/50">
+                                <h3 class="font-extrabold text-slate-950 text-sm">הודעות אחרונות</h3>
+                            </div>
+                            <div id="chat-buddies-list" class="divide-y divide-slate-50">
+                                <!-- ייווצר דינמית על ידי JS -->
+                            </div>
+                        </div>
+
+                        <!-- חלון שיחה פעילה -->
+                        <div class="flex-1 flex flex-col bg-slate-50/30">
+                            <!-- מצב שיש שותף פעיל -->
+                            <div id="chat-active-window" class="flex-1 flex flex-col h-full">
+                                <div class="p-4 bg-white border-b border-slate-100 flex items-center justify-between shrink-0">
+                                    <div class="flex items-center gap-3">
+                                        <img id="chat-partner-avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80" alt="" class="w-10 h-10 rounded-full object-cover">
+                                        <div>
+                                            <h4 id="chat-partner-name" class="font-bold text-slate-900 text-sm">שירה לוי</h4>
+                                            <p class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span> אונליין - מוכן לעזור
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button onclick="startVideoCallDirectly()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 p-2.5 rounded-xl text-xs transition-all flex items-center gap-1.5 font-bold px-3">
+                                        <span>🎥 מעבר לוידאו ולוח</span>
+                                    </button>
+                                </div>
+
+                                <!-- גוף השיחה -->
+                                <div id="chat-messages-container" class="flex-1 p-6 overflow-y-auto space-y-4">
+                                    <!-- ההודעות ייווצרו פה בצורה דינמית -->
+                                </div>
+
+                                <!-- סרגל כתיבה -->
+                                <div class="p-4 bg-white border-t border-slate-100 flex gap-2 shrink-0">
+                                    <input onkeydown="if(event.key === 'Enter') handleSendMessage()" id="chat-input" type="text" placeholder="כתבו הודעה... (הקש Enter לשליחה)" class="flex-1 px-4 py-3 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <button onclick="handleSendMessage()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 rounded-xl transition-all shadow-md shadow-indigo-100">שלח</button>
+                                </div>
+                            </div>
+
+                            <!-- מצב שאין שותף פעיל -->
+                            <div id="chat-empty-window" class="hidden flex-1 flex flex-col items-center justify-center p-12 text-center h-full">
+                                <span class="text-4xl animate-bounce">💬</span>
+                                <h4 class="font-bold text-slate-800 mt-3">בחר חבר לשכבה כדי להתחיל ללמוד</h4>
+                                <p class="text-slate-400 text-xs mt-1">תוכל לשלוח הודעה ישירה או לפתוח לוח שרטוט</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ======================================= -->
+                <!-- דף 5: שיחת וידאו ולוח שרטוט (Video & Whiteboard) -->
+                <!-- ======================================= -->
+                <div id="panel-video" class="page-panel hidden">
+                    <!-- תצוגה מקדימה לפני פתיחת הוידאו -->
+                    <div id="video-setup" class="bg-white p-12 rounded-3xl border border-slate-100 shadow-sm text-center max-w-lg mx-auto">
+                        <span class="text-5xl">🎥</span>
+                        <h3 class="font-extrabold text-slate-900 text-lg mt-4">חדר שיחה ולוח שרטוטים משותף</h3>
+                        <p class="text-slate-500 text-sm mt-2 leading-relaxed">
+                            בתוך שיחת הוידאו הלימודית תוכלו להפעיל את הלוח הלבן (Whiteboard) על מנת לפתור תרגילים במשותף, לכתוב סיכומים בהיסטוריה או לשרטט צורות הנדסיות ביחד!
+                        </p>
+                        <div class="mt-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 text-right space-y-2">
+                            <p class="text-xs font-bold text-slate-700">שותף נבחר לשיחה:</p>
+                            <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-100">
+                                <img id="video-partner-avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80" alt="partner" class="w-10 h-10 rounded-full object-cover">
+                                <div>
+                                    <p id="video-partner-name" class="font-bold text-slate-900 text-xs">שירה לוי</p>
+                                    <p id="video-partner-grade" class="text-[10px] text-indigo-600 font-semibold">כיתה ח' 1</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="startVideoCall()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl text-xs transition-all mt-6 shadow-md shadow-indigo-100">
+                            📞 התחל שיחת וידאו ושרטוטים
+                        </button>
+                    </div>
+
+                    <!-- שיחת וידאו פעילה -->
+                    <div id="video-active" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[500px]">
+                        <!-- תצוגת וידאו - 5 עמודות -->
+                        <div class="lg:col-span-5 flex flex-col gap-4">
+                            <!-- מסך השותף -->
+                            <div class="flex-1 min-h-[220px] bg-slate-900 rounded-2xl overflow-hidden relative shadow-md">
+                                <img id="video-feed-partner" src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=400&q=80" alt="partner video" class="w-full h-full object-cover opacity-85">
+                                <div class="absolute top-4 right-4 bg-black/60 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg">
+                                    🔴 בשיחה: <span id="video-feed-partner-name">שירה לוי</span>
+                                </div>
+                                <div class="absolute bottom-4 right-4 flex items-center gap-1.5 bg-indigo-600/95 text-white text-[11px] px-2.5 py-1 rounded-lg">
+                                    <span>🎙️ מדבר/ת...</span>
+                                    <span class="flex gap-0.5">
+                                        <span class="w-1 h-3 bg-white rounded-full animate-bounce"></span>
+                                        <span class="w-1 h-4 bg-white rounded-full animate-pulse"></span>
+                                        <span class="w-1 h-2 bg-white rounded-full animate-bounce"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <!-- מצלמה שלי -->
+                            <div class="h-40 bg-slate-800 rounded-2xl overflow-hidden relative shadow-md border-2 border-indigo-500">
+                                <div id="my-camera-placeholder" class="w-full h-full bg-slate-750 flex items-center justify-center text-slate-400">
+                                    <img id="video-feed-my" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=400&q=80" alt="my video" class="w-full h-full object-cover">
+                                </div>
+                                <div class="absolute top-3 right-3 bg-black/60 text-white text-[9px] font-bold px-2.5 py-1 rounded-lg">
+                                    אני (מצלמה דולקת)
+                                </div>
+                            </div>
+
+                            <!-- כפתורי שליטה -->
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center justify-center gap-4 shadow-sm">
+                                <button onclick="toggleAudio()" id="btn-toggle-mic" class="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all text-sm" title="השתק/הפעל מיקרופון">
+                                    🎤
+                                </button>
+                                <button onclick="toggleVideoFeed()" id="btn-toggle-camera" class="w-11 h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-all text-sm" title="כבה/הפעל מצלמה">
+                                    📷
+                                </button>
+                                <button onclick="hangUpCall()" class="w-11 h-11 rounded-full bg-red-100 hover:bg-red-200 text-red-600 flex items-center justify-center transition-all text-sm" title="נתק שיחה">
+                                    🔴
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- לוח שרטוט לבן - 7 עמודות -->
+                        <div class="lg:col-span-7 flex flex-col bg-white rounded-2xl border border-slate-100 shadow-md p-4">
+                            <div class="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg">🎨</span>
+                                    <h4 class="font-extrabold text-slate-900 text-sm">לוח שרטוט ותרגול אינטראקטיבי</h4>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-slate-400">פתרו תרגילים ביחד בזמן אמת</span>
+                                </div>
+                            </div>
+
+                            <!-- מברשות ובחירת צבעים -->
+                            <div class="flex flex-wrap items-center gap-3 mb-4 bg-slate-50 p-2.5 rounded-xl">
+                                <div class="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                                    <button onclick="setBrushColor('#4f46e5')" class="w-6 h-6 rounded-full bg-indigo-600 focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"></button>
+                                    <button onclick="setBrushColor('#e11d48')" class="w-6 h-6 rounded-full bg-rose-600 focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"></button>
+                                    <button onclick="setBrushColor('#059669')" class="w-6 h-6 rounded-full bg-emerald-600 focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"></button>
+                                    <button onclick="setBrushColor('#d97706')" class="w-6 h-6 rounded-full bg-amber-600 focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"></button>
+                                    <button onclick="setBrushColor('#0f172a')" class="w-6 h-6 rounded-full bg-slate-900 focus:ring-2 focus:ring-offset-2 focus:ring-slate-400"></button>
+                                </div>
+
+                                <div class="flex items-center gap-1 border-l border-slate-200 pl-3">
+                                    <span class="text-xs text-slate-500">עובי:</span>
+                                    <select onchange="setBrushWidth(this.value)" class="bg-white text-xs border border-slate-200 rounded px-1.5 py-1 focus:outline-none">
+                                        <option value="2">דק</option>
+                                        <option value="5" selected>בינוני</option>
+                                        <option value="10">עבה</option>
+                                        <option value="18">מחק / עבה מאוד</option>
+                                    </select>
+                                </div>
+
+                                <button onclick="setEraser()" id="btn-eraser" class="px-2.5 py-1 text-xs font-semibold bg-white border border-slate-200 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors flex items-center gap-1">
+                                    🧼 מחק
+                                </button>
+                                <button onclick="clearWhiteboard()" class="px-2.5 py-1 text-xs font-semibold bg-white border border-slate-200 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors mr-auto">
+                                    🗑️ נקה הכל
+                                </button>
+                            </div>
+
+                            <!-- אזור הקנבס -->
+                            <div class="flex-1 bg-slate-100 rounded-xl overflow-hidden canvas-container min-h-[300px]">
+                                <canvas id="whiteboard" class="w-full h-full bg-white block cursor-crosshair"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ======================================= -->
+                <!-- דף 6: הגדרות פרופיל ומקצועות (Profile & Subjects) -->
+                <!-- ======================================= -->
+                <div id="panel-profile" class="page-panel space-y-6 hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- כרטיס פרופיל ראשי -->
+                        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-center">
+                            <div class="relative w-28 h-28 mx-auto mb-4">
+                                <img id="profile-pic-editable" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80" alt="תמונת פרופיל" class="w-full h-full rounded-full object-cover ring-4 ring-indigo-100">
+                                <button onclick="changeProfileAvatar()" class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center text-xs shadow-md transition-colors" title="שנה תמונה">
+                                    🔄
+                                </button>
+                            </div>
+
+                            <h3 id="profile-name-title" class="text-xl font-bold text-slate-900">אלון כהן</h3>
+                            <p id="profile-grade-subtitle" class="text-xs text-slate-400 mt-1">כיתה ח' 2</p>
+
+                            <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-2 text-center">
+                                <div class="bg-slate-50 p-2.5 rounded-xl">
+                                    <span class="text-[10px] text-slate-400 font-bold block">נקודות עזרה</span>
+                                    <span class="text-base font-extrabold text-indigo-600 mt-1 block">🪙 <span class="user-coins-display">120</span></span>
+                                </div>
+                                <div class="bg-slate-50 p-2.5 rounded-xl">
+                                    <span class="text-[10px] text-slate-400 font-bold block">שותפי למידה</span>
+                                    <span class="text-base font-extrabold text-slate-800 mt-1 block">5 חברים</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- הגדרות מקצועות (חזקים / זקוק לעזרה) -->
+                        <div class="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                            <div>
+                                <h3 class="font-extrabold text-slate-900 text-base mb-1">עדכון פרטים ומקצועות לימוד</h3>
+                                <p class="text-xs text-slate-400">הגדר באילו מקצועות תוכל לתרום ובאילו מקצועות אתה זקוק לעזרה מהשכבה.</p>
+                            </div>
+
+                            <form onsubmit="saveProfileSettings(event)" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">שם מלא</label>
+                                        <input id="profile-input-name" type="text" required class="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">כיתה ומחזור</label>
+                                        <input id="profile-input-grade" type="text" required class="w-full px-4 py-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                                    <!-- מקצועות חזקים -->
+                                    <div class="space-y-3">
+                                        <h4 class="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                                            <span>💪</span> מקצועות חזקים (בהם אוכל לעזור):
+                                        </h4>
+                                        <div class="space-y-2" id="strong-subjects-container">
+                                            <!-- Checkboxes dynamically managed or generated -->
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="strong_subjects" value="math" checked class="rounded text-indigo-600 focus:ring-indigo-500"> 📐 מתמטיקה
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="strong_subjects" value="english" class="rounded text-indigo-600 focus:ring-indigo-500"> 🇬🇧 אנגלית
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="strong_subjects" value="science" checked class="rounded text-indigo-600 focus:ring-indigo-500"> 🧪 מדע וטכנולוגיה
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="strong_subjects" value="history" class="rounded text-indigo-600 focus:ring-indigo-500"> 📜 היסטוריה
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="strong_subjects" value="hebrew" class="rounded text-indigo-600 focus:ring-indigo-500"> ✍️ עברית ולשון
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- מקצועות חלשים -->
+                                    <div class="space-y-3">
+                                        <h4 class="text-xs font-bold text-indigo-600 flex items-center gap-1">
+                                            <span>📚</span> מקצועות בהם אשמח לעזרה:
+                                        </h4>
+                                        <div class="space-y-2" id="weak-subjects-container">
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="weak_subjects" value="math" class="rounded text-indigo-600 focus:ring-indigo-500"> 📐 מתמטיקה
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="weak_subjects" value="english" checked class="rounded text-indigo-600 focus:ring-indigo-500"> 🇬🇧 אנגלית
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="weak_subjects" value="science" class="rounded text-indigo-600 focus:ring-indigo-500"> 🧪 מדע וטכנולוגיה
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="weak_subjects" value="history" checked class="rounded text-indigo-600 focus:ring-indigo-500"> 📜 היסטוריה
+                                            </label>
+                                            <label class="flex items-center gap-2 text-xs font-medium text-slate-600">
+                                                <input type="checkbox" name="weak_subjects" value="hebrew" class="rounded text-indigo-600 focus:ring-indigo-500"> ✍️ עברית ולשון
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end pt-4">
+                                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition-colors shadow-md shadow-indigo-100">
+                                        💾 שמור שינויים
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK Imports for real peer interaction fallback -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State & Fallbacks
+        let app, db, auth;
+        let currentUserData = null;
+        let activePage = 'dashboard';
+        let currentAuthMode = 'login';
+        let buddies = [];
+        let forumPosts = [];
+        let chatMessages = [];
+        let activeChatPartnerId = null;
+        let activeVideoPartner = null;
+
+        // Mock Default Avatars
+        const avatarPool = [
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80"
+        ];
+
+        // Subject labels
+        const subjectLabels = {
+            'math': '📐 מתמטיקה',
+            'english': '🇬🇧 אנגלית',
+            'science': '🧪 מדעים',
+            'history': '📜 היסטוריה',
+            'hebrew': '✍️ עברית ולשון',
+            'tech': '💻 מחשבים'
+        };
+
+        // Initialize Firebase with system configuration or safe mock
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'studybuddy-demo-app';
+        let firebaseConfig;
+        try {
+            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        } catch (e) {
+            firebaseConfig = null;
+        }
+
+        // Setup environment (Mock or Actual Firebase)
+        const isFirebaseConfigured = !!firebaseConfig;
+
+        if (isFirebaseConfigured) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            // Auth Setup
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            };
+            initAuth();
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    setupFirebaseSync(user);
+                } else {
+                    showAuthScreen();
+                }
+            });
+        } else {
+            // Local Memory Fallback for beautiful offline performance
+            console.log("Using dynamic local state simulation (StudyBuddy Offline Mode).");
+            setupMockData();
+            showAuthScreen();
+        }
+
+        // Toast Helpers
+        window.showToast = function(message, type = 'info') {
+            const toast = document.getElementById('toast-container');
+            const msgEl = document.getElementById('toast-message');
+            const iconEl = document.getElementById('toast-icon');
+
+            iconEl.innerText = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '🔔';
+            msgEl.innerText = message;
+            
+            toast.classList.remove('translate-y-[-150%]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                hideToast();
+            }, 4000);
+        };
+
+        window.hideToast = function() {
+            const toast = document.getElementById('toast-container');
+            toast.classList.add('translate-y-[-150%]', 'opacity-0');
+            toast.classList.remove('translate-y-0', 'opacity-100');
+        };
+
+        // Auth Logic Controls
+        window.setAuthMode = function(mode) {
+            currentAuthMode = mode;
+            const regFields = document.getElementById('register-fields');
+            const btnSubmit = document.getElementById('btn-submit-auth');
+            const tabLogin = document.getElementById('btn-tab-login');
+            const tabRegister = document.getElementById('btn-tab-register');
+
+            if (mode === 'register') {
+                regFields.classList.remove('hidden');
+                btnSubmit.innerText = 'הרשמה מהירה לתלמיד';
+                tabRegister.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+                tabRegister.classList.remove('text-slate-600');
+                tabLogin.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                tabLogin.classList.add('text-slate-600');
+            } else {
+                regFields.classList.add('hidden');
+                btnSubmit.innerText = 'להתחברות מהירה לאבטיפוס';
+                tabLogin.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+                tabLogin.classList.remove('text-slate-600');
+                tabRegister.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+                tabRegister.classList.add('text-slate-600');
+            }
+        };
+
+        window.handleAuth = async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+
+            if (currentAuthMode === 'register') {
+                const name = document.getElementById('auth-name').value || "תלמיד חדש";
+                const grade = document.getElementById('auth-grade').value;
+                const role = document.getElementById('auth-role').value;
+                
+                currentUserData = {
+                    uid: "user_" + Math.random().toString(36).substr(2, 9),
+                    email: email,
+                    name: name,
+                    grade: grade,
+                    role: role,
+                    coins: 120,
+                    strong_subjects: ['math', 'science'],
+                    weak_subjects: ['english'],
+                    avatar: avatarPool[Math.floor(Math.random() * avatarPool.length)]
+                };
+            } else {
+                // Mock Login lookup
+                currentUserData = {
+                    uid: "user_test",
+                    email: email,
+                    name: email.split('@')[0] || "אלון כהן",
+                    grade: "כיתה ח' 2",
+                    role: "helper",
+                    coins: 120,
+                    strong_subjects: ['math', 'science'],
+                    weak_subjects: ['english'],
+                    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"
+                };
+            }
+
+            // Sync or local load
+            if (isFirebaseConfigured && auth.currentUser) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', auth.currentUser.uid), {
+                        ...currentUserData,
+                        uid: auth.currentUser.uid
+                    });
+                    currentUserData.uid = auth.currentUser.uid;
+                } catch(e) {
+                    console.error("Firebase Auth save error:", e);
+                }
+            } else {
+                // Keep locally
+                buddies.push(currentUserData);
+            }
+
+            showToast(`ברוך הבא, ${currentUserData.name}!`, 'success');
+            enterApp();
+        };
+
+        window.logout = function() {
+            if (isFirebaseConfigured) {
+                signOut(auth);
+            }
+            currentUserData = null;
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            showToast("להתראות! נשמח לראות אותך לומד שוב בקרוב.", "info");
+        };
+
+        function showAuthScreen() {
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+        }
+
+        function enterApp() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+
+            // Render details in sidebar and profile
+            document.getElementById('user-avatar-sidebar').src = currentUserData.avatar;
+            document.getElementById('user-name-sidebar').innerText = currentUserData.name;
+            document.getElementById('user-grade-sidebar').innerText = currentUserData.grade;
+            document.getElementById('user-coins-sidebar').innerText = currentUserData.coins;
+            
+            const coinsEls = document.querySelectorAll('.user-coins-display');
+            coinsEls.forEach(el => el.innerText = currentUserData.coins);
+
+            // Populate settings inputs
+            document.getElementById('profile-input-name').value = currentUserData.name;
+            document.getElementById('profile-input-grade').value = currentUserData.grade;
+            document.getElementById('profile-pic-editable').src = currentUserData.avatar;
+            document.getElementById('profile-name-title').innerText = currentUserData.name;
+            document.getElementById('profile-grade-subtitle').innerText = currentUserData.grade;
+
+            switchPage('dashboard');
+            renderBuddies();
+            renderForum();
+            renderChatList();
+        }
+
+        // Setup real peer matching database syncing
+        function setupFirebaseSync(user) {
+            // Read or create current user profile
+            const userRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', user.uid);
+            getDoc(userRef).then((snap) => {
+                if (snap.exists()) {
+                    currentUserData = snap.data();
+                } else {
+                    currentUserData = {
+                        uid: user.uid,
+                        email: user.email || "anonymous@studybuddy.school",
+                        name: "תלמיד/ה חדש/ה",
+                        grade: "ח' 1",
+                        role: "helper",
+                        coins: 100,
+                        strong_subjects: ['math'],
+                        weak_subjects: ['english'],
+                        avatar: avatarPool[Math.floor(Math.random() * avatarPool.length)]
+                    };
+                    setDoc(userRef, currentUserData);
+                }
+                enterApp();
+
+                // Live Sync Buddies
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), (snapshot) => {
+                    buddies = [];
+                    snapshot.forEach(docSnap => {
+                        buddies.push(docSnap.data());
+                    });
+                    renderBuddies();
+                    renderChatList();
+                }, (error) => console.log(error));
+
+                // Live Sync Forum Questions
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), (snapshot) => {
+                    forumPosts = [];
+                    snapshot.forEach(docSnap => {
+                        forumPosts.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+                    renderForum();
+                }, (error) => console.log(error));
+
+                // Live Sync Chat Messages
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), (snapshot) => {
+                    chatMessages = [];
+                    snapshot.forEach(docSnap => {
+                        chatMessages.push(docSnap.data());
+                    });
+                    chatMessages.sort((a,b) => a.timestamp - b.timestamp);
+                    renderActiveChat();
+                }, (error) => console.log(error));
+            });
+        }
+
+        function setupMockData() {
+            // Set up rich mock database
+            currentUserData = {
+                uid: "user_test",
+                email: "alon@school.edu.il",
+                name: "אלון כהן",
+                grade: "כיתה ח' 2",
+                role: "helper",
+                coins: 120,
+                strong_subjects: ['math', 'science'],
+                weak_subjects: ['english'],
+                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"
+            };
+
+            buddies = [
+                currentUserData,
+                {
+                    uid: "user_shira",
+                    name: "שירה לוי",
+                    grade: "כיתה ח' 1",
+                    role: "helper",
+                    coins: 140,
+                    strong_subjects: ['english', 'history'],
+                    weak_subjects: ['math'],
+                    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
+                    isOnline: true
+                },
+                {
+                    uid: "user_itamar",
+                    name: "איתמר גולן",
+                    grade: "כיתה ז' 2",
+                    role: "seeker",
+                    coins: 60,
+                    strong_subjects: ['hebrew'],
+                    weak_subjects: ['science', 'math'],
+                    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=150&q=80",
+                    isOnline: true
+                },
+                {
+                    uid: "user_noa",
+                    name: "נועה כרמל",
+                    grade: "כיתה ח' 2",
+                    role: "helper",
+                    coins: 180,
+                    strong_subjects: ['science', 'tech', 'math'],
+                    weak_subjects: ['history'],
+                    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
+                    isOnline: false
+                },
+                {
+                    uid: "user_yonatan",
+                    name: "יונתן רז",
+                    grade: "כיתה ז' 1",
+                    role: "seeker",
+                    coins: 90,
+                    strong_subjects: ['history'],
+                    weak_subjects: ['english'],
+                    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+                    isOnline: true
+                }
+            ];
+
+            forumPosts = [
+                {
+                    id: "post_1",
+                    title: "איך מוצאים את נקודת המפגש של אלכסונים במקבילית?",
+                    content: "אני ממש תקוע בשיעורי בית במתמטיקה של גילה. יש למישהו סיכום טוב או דוגמה של תרגיל פתור?",
+                    subject: "math",
+                    authorName: "יונתן רז",
+                    authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+                    timestamp: Date.now() - 3600000 * 3,
+                    replies: [
+                        {
+                            authorName: "שירה לוי",
+                            content: "היי יונתן! במקבילית האלכסונים חוצים זה את זה. זה אומר שנקודת המפגש היא בדיוק האמצע של כל אלכסון. אפשר למצוא אותה בעזרת ממוצע פשוט של שיעורי ה-X וה-Y של הקצוות!",
+                            avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80"
+                        }
+                    ]
+                },
+                {
+                    id: "post_2",
+                    title: "צריכה עזרה בהבנת זמני Past Simple באנגלית 🇬🇧",
+                    content: "מישהו יכול להסביר לי מתי מוסיפים ed ומתי המילה משתנה לגמרי? יש מבחן מחר!",
+                    subject: "english",
+                    authorName: "איתמר גולן",
+                    authorAvatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=150&q=80",
+                    timestamp: Date.now() - 3600000 * 24,
+                    replies: []
+                }
+            ];
+
+            chatMessages = [
+                {
+                    senderId: "user_shira",
+                    receiverId: "user_test",
+                    text: "היי אלון! ראיתי שאתה צריך עזרה באנגלית. רוצה שנעשה שיחה ונפתור את האנסין ביחד?",
+                    timestamp: Date.now() - 1000 * 60 * 10
+                },
+                {
+                    senderId: "user_test",
+                    receiverId: "user_shira",
+                    text: "וואי כן בבקשה! אני ממש מתקשה עם מילות הקישור.",
+                    timestamp: Date.now() - 1000 * 60 * 8
+                }
+            ];
+        }
+
+        // NAVIGATION CONTROLLER
+        window.switchPage = function(pageId) {
+            activePage = pageId;
+            
+            // Hide all page panels
+            const panels = document.querySelectorAll('.page-panel');
+            panels.forEach(panel => panel.classList.add('hidden'));
+
+            // Show active panel
+            const activePanel = document.getElementById(`panel-${pageId}`);
+            if (activePanel) activePanel.classList.remove('hidden');
+
+            // Toggle active styling on navigation buttons
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.remove('bg-indigo-50', 'text-indigo-600');
+                btn.classList.add('text-slate-600', 'hover:bg-slate-50');
+            });
+
+            const activeBtn = document.getElementById(`nav-${pageId}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-50');
+                activeBtn.classList.add('bg-indigo-50', 'text-indigo-600');
+            }
+
+            // Custom Page Header Dynamic Titles
+            const titles = {
+                'dashboard': `שלום, ${currentUserData.name}! 👋`,
+                'buddies': 'מצא שותף למידה בשכבה 🔍',
+                'forum': 'פורום שיעורי בית ושאלות 💬',
+                'chat': 'צ׳אט ולמידה ישירה ✉️',
+                'video': 'שיחת וידאו ולוח כתיבה משותף 🎥',
+                'profile': 'הגדרות פרופיל ומקצועות לימוד ⚙️'
+            };
+
+            const subtitles = {
+                'dashboard': 'מה נלמד ועל מה נתאמן היום?',
+                'buddies': "סנן לפי מקצועות כדי למצוא חברים משכבת ז' ו-ח' שזמינים לעזור",
+                'forum': 'שאל שאלות, ענה לחברים וצבור נקודות עזרה',
+                'chat': 'שיח ישיר ותרגול ממוקד עם חברים',
+                'video': 'פתרו תרגילים על הלוח הלבן יחד עם השותף שלכם',
+                'profile': 'עדכן את המקצועות החזקים והחלשים שלך לצורך התאמת שותפים מיטבית'
+            };
+
+            document.getElementById('page-title').innerText = titles[pageId] || 'StudyBuddy';
+            document.getElementById('page-subtitle').innerText = subtitles[pageId] || '';
+
+            if (pageId === 'video') {
+                // Initialize canvas sizes and triggers
+                setTimeout(() => {
+                    initWhiteboardCanvas();
+                }, 100);
+            }
+        };
+
+        // USER PROFILE STATUS TOGGLE
+        window.toggleUserRole = function() {
+            const btn = document.getElementById('btn-status-toggle');
+            const txt = document.getElementById('txt-status');
+
+            if (currentUserData.role === 'helper') {
+                currentUserData.role = 'seeker';
+                txt.innerText = 'זקוק לעזרה במקצועות שלי';
+                btn.className = "px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 bg-amber-50 text-amber-600 border border-amber-200";
+                showToast("הסטטוס שונה: כעת חברים רואים שאתה מחפש עזרה", "info");
+            } else {
+                currentUserData.role = 'helper';
+                txt.innerText = 'פנוי לעזור לחברים';
+                btn.className = "px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200";
+                showToast("כל הכבוד! חברים בשכבה יוכלו לפנות אליך לעזרה", "success");
+            }
+
+            if (isFirebaseConfigured) {
+                updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUserData.uid), {
+                    role: currentUserData.role
+                });
+            } else {
+                renderBuddies();
+            }
+        };
+
+        // PROFILE EDIT & SAVE
+        window.saveProfileSettings = function(event) {
+            event.preventDefault();
+            const name = document.getElementById('profile-input-name').value;
+            const grade = document.getElementById('profile-input-grade').value;
+
+            // Extract checkboxes
+            const strongChecked = Array.from(document.querySelectorAll('input[name="strong_subjects"]:checked')).map(el => el.value);
+            const weakChecked = Array.from(document.querySelectorAll('input[name="weak_subjects"]:checked')).map(el => el.value);
+
+            currentUserData.name = name;
+            currentUserData.grade = grade;
+            currentUserData.strong_subjects = strongChecked;
+            currentUserData.weak_subjects = weakChecked;
+
+            // Save state
+            if (isFirebaseConfigured) {
+                updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUserData.uid), currentUserData);
+            } else {
+                showToast("הפרופיל עודכן בהצלחה!", "success");
+                enterApp();
+            }
+        };
+
+        window.changeProfileAvatar = function() {
+            const newAvatar = avatarPool[Math.floor(Math.random() * avatarPool.length)];
+            currentUserData.avatar = newAvatar;
+            document.getElementById('profile-pic-editable').src = newAvatar;
+            document.getElementById('user-avatar-sidebar').src = newAvatar;
+            showToast("תמונת הפרופיל עודכנה בהצלחה!", "success");
+        };
+
+        // BUDDIES RENDERER
+        function renderBuddies() {
+            const grid = document.getElementById('buddies-grid');
+            const dashList = document.getElementById('dashboard-buddies-list');
+            
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            if (dashList) dashList.innerHTML = '';
+
+            const searchValue = document.getElementById('buddies-search').value.toLowerCase();
+            const subjectFilter = document.getElementById('buddies-filter-subject').value;
+            const roleFilter = document.getElementById('buddies-filter-role').value;
+
+            // Filtered Buddies
+            const filtered = buddies.filter(b => {
+                if (b.uid === currentUserData.uid) return false; // Don't show myself
+                
+                const matchesSearch = b.name.toLowerCase().includes(searchValue);
+                
+                const matchesSubject = subjectFilter === 'all' || 
+                    (b.strong_subjects && b.strong_subjects.includes(subjectFilter)) ||
+                    (b.weak_subjects && b.weak_subjects.includes(subjectFilter));
+
+                const matchesRole = roleFilter === 'all' || b.role === roleFilter;
+
+                return matchesSearch && matchesSubject && matchesRole;
+            });
+
+            // Update online count stats
+            const onlineCount = buddies.filter(b => b.uid !== currentUserData.uid).length;
+            const statOnlineEl = document.getElementById('stat-online-buddies');
+            if (statOnlineEl) statOnlineEl.innerText = `${onlineCount} שותפים`;
+
+            filtered.forEach(b => {
+                const isHelper = b.role === 'helper';
+                
+                // Subject chips generator
+                let strongChips = (b.strong_subjects || []).map(s => 
+                    `<span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[10px] border border-emerald-100">${subjectLabels[s] || s}</span>`
+                ).join(' ');
+
+                let weakChips = (b.weak_subjects || []).map(s => 
+                    `<span class="bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-lg text-[10px] border border-indigo-100">${subjectLabels[s] || s}</span>`
+                ).join(' ');
+
+                // Card Layout
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <img src="${b.avatar}" alt="" class="w-12 h-12 rounded-full object-cover ring-2 ring-slate-100">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                                    ${b.name}
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="מחובר"></span>
+                                </h4>
+                                <p class="text-[11px] text-slate-400 font-medium">${b.grade} • 🪙 ${b.coins || 100} נק'</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3 mb-4">
+                            <div>
+                                <span class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 block mb-1">חזק ב-</span>
+                                <div class="flex flex-wrap gap-1">${strongChips || '<span class="text-slate-300 text-xs">אין</span>'}</div>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 block mb-1">רוצה להשתפר ב-</span>
+                                <div class="flex flex-wrap gap-1">${weakChips || '<span class="text-slate-300 text-xs">אין</span>'}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-3 border-t border-slate-50 mt-auto">
+                        <button onclick="openChatWith('${b.uid}')" class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold py-2 px-3 rounded-xl text-xs transition-colors">
+                            ✉️ שלח הודעה
+                        </button>
+                        <button onclick="initiateVideoWith('${b.uid}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 p-2 rounded-xl text-xs font-bold transition-colors" title="פתח שיחת וידאו">
+                            🎥 וידאו
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                // Add to dashboard view (if online helper)
+                if (dashList && b.role === 'helper') {
+                    const listItem = document.createElement('div');
+                    listItem.className = "flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors";
+                    listItem.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${b.avatar}" alt="" class="w-9 h-9 rounded-full object-cover">
+                            <div>
+                                <p class="font-bold text-slate-900 text-xs">${b.name}</p>
+                                <p class="text-[10px] text-slate-400">חזק ב: ${(b.strong_subjects || []).map(s => subjectLabels[s]).join(', ')}</p>
+                            </div>
+                        </div>
+                        <button onclick="openChatWith('${b.uid}')" class="bg-white hover:bg-indigo-50 text-indigo-600 text-[10px] font-extrabold px-3 py-1.5 rounded-lg border border-slate-200 transition-colors">
+                            💬 דבר איתי
+                        </button>
+                    `;
+                    dashList.appendChild(listItem);
+                }
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full bg-white p-12 text-center rounded-2xl border border-slate-100">
+                        <p class="text-slate-400 text-sm">לא נמצאו שותפים התואמים את הסינון הנוכחי.</p>
+                    </div>
+                `;
+            }
+
+            if (dashList && dashList.innerHTML === '') {
+                dashList.innerHTML = `<p class="text-slate-400 text-xs text-center p-4">אין כרגע שותפים זמינים לעזרה.</p>`;
+            }
+        }
+
+        window.filterBuddies = function() {
+            renderBuddies();
+        };
+
+        // FORUM CONTROLLER
+        window.handleCreatePost = function(event) {
+            event.preventDefault();
+            const title = document.getElementById('new-post-title').value;
+            const content = document.getElementById('new-post-content').value;
+            const subject = document.getElementById('new-post-subject').value;
+
+            const newPost = {
+                id: "post_" + Math.random().toString(36).substr(2, 9),
+                title: title,
+                content: content,
+                subject: subject,
+                authorName: currentUserData.name,
+                authorAvatar: currentUserData.avatar,
+                timestamp: Date.now(),
+                replies: []
+            };
+
+            if (isFirebaseConfigured) {
+                addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'posts'), newPost);
+            } else {
+                forumPosts.unshift(newPost);
+                showToast("השאלה שלך פורסמה בהצלחה בפורום!", "success");
+                renderForum();
+            }
+
+            // Clear inputs
+            document.getElementById('new-post-title').value = '';
+            document.getElementById('new-post-content').value = '';
+        };
+
+        function renderForum() {
+            const container = document.getElementById('forum-posts-container');
+            const dashForum = document.getElementById('dashboard-forum-list');
+            
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (dashForum) dashForum.innerHTML = '';
+
+            // Update Stats
+            const statPendingEl = document.getElementById('stat-pending-questions');
+            if (statPendingEl) statPendingEl.innerText = `${forumPosts.length} שאלות`;
+
+            forumPosts.forEach(post => {
+                const formattedTime = new Date(post.timestamp).toLocaleDateString('he-IL', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Comments / Replies renderer
+                let repliesHtml = (post.replies || []).map(r => `
+                    <div class="bg-slate-50 p-3 rounded-xl flex items-start gap-2.5">
+                        <img src="${r.avatar || avatarPool[0]}" alt="" class="w-8 h-8 rounded-full object-cover">
+                        <div>
+                            <p class="font-bold text-slate-800 text-[11px]">${r.authorName}</p>
+                            <p class="text-slate-600 text-xs mt-1 leading-relaxed">${r.content}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4";
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="${post.authorAvatar}" alt="" class="w-10 h-10 rounded-full object-cover">
+                            <div>
+                                <span class="bg-indigo-50 text-indigo-700 font-extrabold text-[9px] px-2 py-0.5 rounded-md uppercase tracking-wide">${subjectLabels[post.subject] || post.subject}</span>
+                                <h4 class="font-bold text-slate-900 text-sm mt-1">${post.title}</h4>
+                                <p class="text-[10px] text-slate-400">${post.authorName} • שיתף ב- ${formattedTime}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">${post.content}</p>
+
+                    <!-- קטע תגובות -->
+                    <div class="space-y-3 border-t border-slate-100 pt-4">
+                        <h5 class="text-xs font-bold text-slate-500">תגובות והסברים (${(post.replies || []).length})</h5>
+                        <div class="space-y-2">${repliesHtml || '<p class="text-slate-400 text-[11px] italic">אין עדיין פתרונות. היה הראשון לעזור ולפתור!</p>'}</div>
+                        
+                        <!-- הוספת תגובה מהירה -->
+                        <div class="flex gap-2 pt-2">
+                            <input id="reply-input-${post.id}" type="text" placeholder="כתוב הסבר קצר או פתרון לעזרה..." class="flex-1 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <button onclick="addReply('${post.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors shadow-sm">שלח</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+
+                // Add to Dashboard
+                if (dashForum) {
+                    const dashItem = document.createElement('div');
+                    dashItem.className = "p-3 hover:bg-white rounded-xl transition-all border border-transparent hover:border-slate-100";
+                    dashItem.innerHTML = `
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">${subjectLabels[post.subject] || post.subject}</span>
+                            <span class="text-[10px] text-slate-400">${formattedTime}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-900 text-xs truncate">${post.title}</h4>
+                        <p class="text-[11px] text-slate-500 truncate mt-0.5">${post.content}</p>
+                    `;
+                    dashItem.onclick = () => switchPage('forum');
+                    dashItem.style.cursor = 'pointer';
+                    dashForum.appendChild(dashItem);
+                }
+            });
+
+            if (forumPosts.length === 0 && container) {
+                container.innerHTML = `
+                    <div class="bg-white p-12 text-center rounded-2xl border border-slate-100">
+                        <p class="text-slate-400 text-sm">אין עדיין שאלות בפורום. שאל את השאלה הראשונה שלך!</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.addReply = function(postId) {
+            const input = document.getElementById(`reply-input-${postId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const post = forumPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const newReply = {
+                authorName: currentUserData.name,
+                avatar: currentUserData.avatar,
+                content: text
+            };
+
+            // Reward Point system
+            currentUserData.coins += 15;
+            showToast("מצוין! קיבלת 15 נקודות עזרה על הסיוע לחבר בשכבה!", "success");
+            
+            // Sync
+            if (isFirebaseConfigured) {
+                const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+                const updatedReplies = [...(post.replies || []), newReply];
+                updateDoc(postRef, { replies: updatedReplies });
+
+                // Update coins
+                updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', currentUserData.uid), {
+                    coins: currentUserData.coins
+                });
+            } else {
+                post.replies.push(newReply);
+                enterApp(); // refreshes coins & sidebar
+            }
+
+            input.value = '';
+        };
+
+        // CHAT & CONVERSATIONS
+        window.openChatWith = function(partnerId) {
+            activeChatPartnerId = partnerId;
+            switchPage('chat');
+            renderChatList();
+            renderActiveChat();
+        };
+
+        function renderChatList() {
+            const listContainer = document.getElementById('chat-buddies-list');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
+
+            const listBuddies = buddies.filter(b => b.uid !== currentUserData.uid);
+
+            listBuddies.forEach(b => {
+                // Find last message
+                const thread = chatMessages.filter(m => 
+                    (m.senderId === currentUserData.uid && m.receiverId === b.uid) ||
+                    (m.senderId === b.uid && m.receiverId === currentUserData.uid)
+                );
+                const lastMsg = thread.length > 0 ? thread[thread.length - 1].text : "לחץ כדי להתחיל שיחה";
+                const isSelected = activeChatPartnerId === b.uid;
+
+                const button = document.createElement('button');
+                button.onclick = () => {
+                    activeChatPartnerId = b.uid;
+                    renderChatList();
+                    renderActiveChat();
+                };
+                button.className = `w-full p-4 flex items-center gap-3 transition-colors text-right ${isSelected ? 'bg-indigo-50/70 border-r-4 border-indigo-600' : 'hover:bg-slate-50'}`;
+                button.innerHTML = `
+                    <img src="${b.avatar}" alt="" class="w-10 h-10 rounded-full object-cover">
+                    <div class="flex-1 overflow-hidden">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-slate-900 text-xs">${b.name}</h4>
+                            <span class="text-[9px] text-slate-400">${b.grade}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 truncate mt-0.5">${lastMsg}</p>
+                    </div>
+                `;
+                listContainer.appendChild(button);
+            });
+        }
+
+        function renderActiveChat() {
+            const activeWindow = document.getElementById('chat-active-window');
+            const emptyWindow = document.getElementById('chat-empty-window');
+            const msgContainer = document.getElementById('chat-messages-container');
+
+            if (!activeChatPartnerId) {
+                activeWindow.classList.add('hidden');
+                emptyWindow.classList.remove('hidden');
+                return;
+            }
+
+            activeWindow.classList.remove('hidden');
+            emptyWindow.classList.add('hidden');
+
+            const partner = buddies.find(b => b.uid === activeChatPartnerId);
+            if (!partner) return;
+
+            // Header update
+            document.getElementById('chat-partner-name').innerText = partner.name;
+            document.getElementById('chat-partner-avatar').src = partner.avatar;
+
+            // Render Messages
+            msgContainer.innerHTML = '';
+
+            const thread = chatMessages.filter(m => 
+                (m.senderId === currentUserData.uid && m.receiverId === activeChatPartnerId) ||
+                (m.senderId === activeChatPartnerId && m.receiverId === currentUserData.uid)
+            );
+
+            thread.forEach(msg => {
+                const isMe = msg.senderId === currentUserData.uid;
+                const bubble = document.createElement('div');
+                bubble.className = `flex ${isMe ? 'justify-start' : 'justify-end'} mb-3`;
+                bubble.innerHTML = `
+                    <div class="max-w-xs md:max-w-md p-3.5 rounded-2xl text-xs leading-relaxed ${
+                        isMe 
+                        ? 'bg-indigo-600 text-white rounded-br-none shadow-md shadow-indigo-100' 
+                        : 'bg-white text-slate-800 rounded-bl-none border border-slate-100 shadow-sm'
+                    }">
+                        <p>${msg.text}</p>
+                    </div>
+                `;
+                msgContainer.appendChild(bubble);
+            });
+
+            // Scroll to bottom
+            setTimeout(() => {
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+            }, 50);
+        }
+
+        window.handleSendMessage = function() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text || !activeChatPartnerId) return;
+
+            const newMsg = {
+                senderId: currentUserData.uid,
+                receiverId: activeChatPartnerId,
+                text: text,
+                timestamp: Date.now()
+            };
+
+            if (isFirebaseConfigured) {
+                addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), newMsg);
+            } else {
+                chatMessages.push(newMsg);
+                renderActiveChat();
+                renderChatList();
+            }
+
+            input.value = '';
+        };
+
+        // VIDEO CALL & COLLABORATIVE WHITEBOARD SIMULATION
+        window.initiateVideoWith = function(partnerId) {
+            const partner = buddies.find(b => b.uid === partnerId);
+            if (!partner) return;
+
+            activeVideoPartner = partner;
+            switchPage('video');
+
+            document.getElementById('video-setup').classList.remove('hidden');
+            document.getElementById('video-active').classList.add('hidden');
+
+            document.getElementById('video-partner-name').innerText = partner.name;
+            document.getElementById('video-partner-avatar').src = partner.avatar;
+            document.getElementById('video-partner-grade').innerText = partner.grade;
+        };
+
+        window.startVideoCallDirectly = function() {
+            if (!activeChatPartnerId) return;
+            window.initiateVideoWith(activeChatPartnerId);
+        };
+
+        window.startVideoCall = function() {
+            if (!activeVideoPartner) return;
+
+            document.getElementById('video-setup').classList.add('hidden');
+            document.getElementById('video-active').classList.remove('hidden');
+
+            // Setup active participant images
+            document.getElementById('video-feed-partner').src = activeVideoPartner.avatar;
+            document.getElementById('video-feed-partner-name').innerText = activeVideoPartner.name;
+            document.getElementById('video-feed-my').src = currentUserData.avatar;
+
+            initWhiteboardCanvas();
+            showToast(`שיחת וידאו התחילה עם ${activeVideoPartner.name}`, "success");
+        };
+
+        window.hangUpCall = function() {
+            document.getElementById('video-setup').classList.remove('hidden');
+            document.getElementById('video-active').classList.add('hidden');
+            showToast("שיחת הוידאו הסתיימה", "info");
+        };
+
+        window.toggleAudio = function() {
+            const btn = document.getElementById('btn-toggle-mic');
+            if (btn.innerText.includes('🎤')) {
+                btn.innerText = '🔇';
+                btn.classList.add('bg-red-50', 'text-red-500');
+                showToast("מיקרופון מושתק כעת", "info");
+            } else {
+                btn.innerText = '🎤';
+                btn.classList.remove('bg-red-50', 'text-red-500');
+                showToast("מיקרופון פעיל", "success");
+            }
+        };
+
+        window.toggleVideoFeed = function() {
+            const btn = document.getElementById('btn-toggle-camera');
+            const myFeed = document.getElementById('video-feed-my');
+            
+            if (btn.innerText.includes('📷')) {
+                btn.innerText = '📹';
+                btn.classList.add('bg-red-50', 'text-red-500');
+                myFeed.classList.add('opacity-10', 'brightness-50');
+                showToast("מצלמה כבויה כעת", "info");
+            } else {
+                btn.innerText = '📷';
+                btn.classList.remove('bg-red-50', 'text-red-500');
+                myFeed.classList.remove('opacity-10', 'brightness-50');
+                showToast("מצלמה דולקת", "success");
+            }
+        };
+
+        // WHITEBOARD CANVAS LOGIC
+        let canvas, ctx;
+        let isDrawing = false;
+        let brushColor = '#4f46e5';
+        let brushWidth = 5;
+
+        function initWhiteboardCanvas() {
+            canvas = document.getElementById('whiteboard');
+            if (!canvas) return;
+
+            ctx = canvas.getContext('2d');
+
+            // Set canvas size matching CSS viewport dynamically
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Canvas Drawing Event Listeners (Mouse)
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            // Canvas Drawing Event Listeners (Touch Screens)
+            canvas.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+
+            canvas.addEventListener('touchend', () => {
+                const mouseEvent = new MouseEvent('mouseup', {});
+                canvas.dispatchEvent(mouseEvent);
+            }, { passive: true });
+        }
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            // Re-apply styles on resize
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            ctx.beginPath();
+            const rect = canvas.getBoundingClientRect();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            
+            ctx.strokeStyle = brushColor;
+            ctx.lineWidth = brushWidth;
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        window.setBrushColor = function(color) {
+            brushColor = color;
+            showToast(`צבע מברשת שונה`, "success");
+        };
+
+        window.setBrushWidth = function(width) {
+            brushWidth = parseInt(width);
+        };
+
+        window.setEraser = function() {
+            brushColor = '#ffffff'; // draw in white to erase
+            showToast("מחק הופעל", "info");
+        };
+
+        window.clearWhiteboard = function() {
+            if (!canvas || !ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            showToast("לוח שרטוט נוקה", "info");
+        };
+    </script>
+</body>
+</html>

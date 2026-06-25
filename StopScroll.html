@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrollGuard - ערבות הדדית נגד התמכרות למסכים</title>
+
+    <!-- טעינת Tailwind CSS לעיצוב מודרני וחלק -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Segoe UI', 'Rubik', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- טעינת ספריות Firebase בגרסת תאימות (Compat) - עובד מצוין ישירות בדפדפנים ללא מודולים -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* מעברים ואנימציות קלות */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            background: #9333ea;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col items-center justify-start pb-20">
+
+    <!-- אזור ההתראות הקופצות (Alerts/Toasts) -->
+    <div id="alerts-container" class="fixed top-4 left-4 right-4 z-50 flex flex-col gap-2 max-w-md mx-auto"></div>
+
+    <!-- כותרת ראשית קבועה של האפליקציה -->
+    <header class="w-full max-w-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 md:rounded-b-2xl shadow-lg flex items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-white text-purple-600 p-2 rounded-2xl shadow-inner text-xl">⏳</div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight">ScrollGuard</h1>
+                <p class="text-[10px] text-purple-100 font-medium">ערבות הדדית נגד התמכרות למסכים</p>
+            </div>
+        </div>
+        <div id="header-room-info" class="hidden bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-xl text-xs border border-white/20">
+            <span class="font-bold">קוד קבוצה:</span> <span id="header-room-id" class="font-extrabold text-yellow-300 tracking-wider text-sm"></span>
+        </div>
+    </header>
+
+    <!-- מרכז האפליקציה (החלפת שלבים דינמית) -->
+    <main class="w-full max-w-md px-4">
+
+        <!-- שלב 1: התחברות (שם משתמש) -->
+        <section id="step-login" class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 text-center animate-fade-in">
+            <span class="text-6xl mb-4 block">🤝</span>
+            <h2 class="text-2xl font-bold mb-2 text-purple-900">ברוכה הבאה ל-ScrollGuard</h2>
+            <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+                האפליקציה החברתית שמעודדת גמילה מגלילה ביחד! הגדירו גבולות, שתפו את הקוד עם החברות, ותעקבו יחד אחרי זמן המסך שלכן.
+            </p>
+            <form id="login-form" class="space-y-4 text-right">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5 mr-1">איך קוראים לך?</label>
+                    <input type="text" id="input-username" required placeholder="הקלידי את שמך..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500 text-base" />
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-l from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all">
+                    בואי נמשיך! 🚀
+                </button>
+            </form>
+        </section>
+
+        <!-- שלב 2: הגדרת מגבלות -->
+        <section id="step-setup" class="hidden bg-white p-6 rounded-3xl shadow-xl border border-slate-100 animate-fade-in">
+            <div class="text-center mb-5">
+                <span class="text-4xl mb-1 block">🎯</span>
+                <h2 class="text-xl font-bold text-slate-800">הגדרת מגבלות גלילה</h2>
+                <p class="text-slate-500 text-xs">כמה דקות את מאשרת לעצמך בכל אפליקציה ביום?</p>
+            </div>
+
+            <div class="space-y-4" id="limits-ranges-container">
+                <!-- ייווצר בצורה דינמית מג'אווה סקריפט -->
+            </div>
+
+            <div class="border-t pt-4 mt-4 space-y-3">
+                <button id="btn-create-room" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md transition-all text-center block">
+                    ➕ יצירת אתגר קבוצתי חדש (מפתח חדר)
+                </button>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-4 text-xs text-slate-400 font-bold">או</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <form id="join-room-form" class="flex gap-2">
+                    <input type="text" id="input-join-room-id" required placeholder="קוד חדר של חברה..." class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-center text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 uppercase font-bold tracking-wider" />
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-xl text-sm transition">
+                        הצטרפי! 👥
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- שלב 3: לוח בקרה (Dashboard) -->
+        <section id="step-dashboard" class="hidden space-y-4">
+
+            <!-- סרגל טאבים (Tabs Navigation) -->
+            <div class="bg-white p-1 rounded-2xl shadow-md border border-slate-100 flex justify-between gap-1">
+                <button onclick="switchTab('status')" id="tab-status" class="flex-1 py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all bg-purple-600 text-white shadow-sm">
+                    <span>📊</span>
+                    <span>מדדי גלילה</span>
+                </button>
+                <button onclick="switchTab('chat')" id="tab-chat" class="flex-1 py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all text-slate-500 hover:bg-slate-50 relative">
+                    <span>💬</span>
+                    <span>צ'אט הקבוצה</span>
+                    <span id="chat-badge" class="hidden absolute top-1.5 left-4 bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">0</span>
+                </button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="flex-1 py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all text-slate-500 hover:bg-slate-50">
+                    <span>⚙️</span>
+                    <span>ניהול ושיתוף</span>
+                </button>
+            </div>
+
+            <!-- טאב 1: מדדי גלילה -->
+            <div id="content-status" class="bg-white p-5 rounded-3xl shadow-xl border border-slate-100 space-y-5 animate-fade-in">
+                <div>
+                    <h2 class="text-lg font-black text-slate-800">📊 מצב הגלילה באתגר</h2>
+                    <p class="text-slate-400 text-xs">מי עומדת לחרוג ולקצר לכולן את הזמן?</p>
+                </div>
+                <div id="status-apps-list" class="space-y-5">
+                    <!-- רשימת האפליקציות והמשתתפות תיבנה כאן דינמית -->
+                </div>
+            </div>
+
+            <!-- טאב 2: צ'אט הקבוצה -->
+            <div id="content-chat" class="hidden bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden flex flex-col h-[500px] animate-fade-in">
+                <div class="bg-slate-900 text-white p-3 flex justify-between items-center">
+                    <span class="text-xs font-bold">💬 שיחות חדר האתגר</span>
+                    <span class="bg-green-500 text-[9px] px-2 py-0.5 rounded-full font-extrabold uppercase animate-pulse">צ'אט פעיל</span>
+                </div>
+                <div id="chat-messages-container" class="flex-1 p-3 overflow-y-auto space-y-3 bg-slate-50 flex flex-col">
+                    <!-- הודעות צ'אט יופיעו כאן -->
+                </div>
+                <form id="chat-send-form" class="p-2 border-t bg-white flex gap-1.5">
+                    <input type="text" id="input-chat-message" placeholder="הסבירי למה חרגת או תזהירי חברה..." class="flex-1 px-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-purple-500" />
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">שלחי</button>
+                </form>
+            </div>
+
+            <!-- טאב 3: ניהול, שיתוף וסימולציה -->
+            <div id="content-settings" class="hidden bg-white p-5 rounded-3xl shadow-xl border border-slate-100 space-y-6 animate-fade-in">
+
+                <!-- שיתוף חברים -->
+                <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-3">
+                    <h3 class="font-bold text-sm text-indigo-950 flex items-center gap-1.5">
+                        <span>🔗</span> שיתוף האתגר עם חברות
+                    </h3>
+                    <p class="text-slate-500 text-xs">
+                        רוצה שהבנות יצטרפו אליך? שתפי איתן את הקוד הבא. הן רק צריכות להזין אותו כשהן נכנסות לאפליקציה!
+                    </p>
+                    <div class="flex items-center gap-2 bg-white p-2 rounded-xl border border-indigo-200">
+                        <span id="room-code-display" class="font-extrabold text-sm text-indigo-600 tracking-widest bg-indigo-50 px-3 py-1.5 rounded-lg flex-1 text-center">---</span>
+                        <button onclick="copyRoomCode()" id="btn-copy-code" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-2 rounded-lg transition">העתקת קוד</button>
+                    </div>
+                </div>
+
+                <!-- חברות סימולציה -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                    <h4 class="font-bold text-xs text-slate-700">בדיקה עצמית של האתגר (סימולציה)</h4>
+                    <p class="text-[10px] text-slate-400">
+                        בדיקה מהירה: תוכלי להכניס חברות דמיוניות (שירה, נועה ומאיה) כדי לבחון איך החריגה וקיצוץ הזמן עובדים מיד.
+                    </p>
+                    <button onclick="addSimulationFriends()" class="w-full py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg text-xs transition">
+                        🤖 הצטרפות חברות סימולציה (שירה, נועה, מאיה)
+                    </button>
+                </div>
+
+                <!-- סימולטור גלילה -->
+                <div class="p-4 rounded-2xl bg-red-50/30 border border-red-100 space-y-3">
+                    <h4 class="font-bold text-xs text-red-950">🎮 סימולציית גלילה (לצורכי בדיקה)</h4>
+                    <p class="text-[10px] text-red-800">
+                        לחצי כדי להוסיף לעצמך או לחברות 5 דקות של גלילה בכל אפליקציה ולראות איך המד מתמלא ואיך חריגה מענישה את כולם:
+                    </p>
+                    <div id="simulator-buttons-grid" class="grid grid-cols-2 gap-2">
+                        <!-- כפתורי סימולציה דינמיים ייווצרו כאן -->
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- סקריפט ה-ג'אווה סקריפט הראשי והנקי -->
+    <script>
+        // פרטי האפליקציות, צבעים ואייקונים (SVG)
+        const APP_DETAILS = {
+            youtube: {
+                name: 'יוטיוב',
+                color: 'bg-red-500',
+                textColor: 'text-red-500',
+                icon: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`
+            },
+            tiktok: {
+                name: 'טיקטוק',
+                color: 'bg-zinc-900',
+                textColor: 'text-zinc-900',
+                icon: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.86-.74-3.99-1.72-.08-.07-.17-.17-.25-.25v6.07c0 3.62-2.55 6.96-6.14 7.64-3.87.77-7.85-1.58-8.72-5.4A7.21 7.21 0 0 1 8.2 8.41c1.3-.23 2.63-.03 3.85.49-.02.13-.03.26-.05.39-.32 1.16-.36 2.41-.09 3.58a3.3 3.3 0 0 0 3.73 2.47c1.47-.19 2.52-1.38 2.51-2.85V.02h-5.63z"/></svg>`
+            },
+            instagram: {
+                name: 'אינסטגרם',
+                color: 'bg-pink-500',
+                textColor: 'text-pink-500',
+                icon: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`
+            },
+            games: {
+                name: 'משחקים',
+                color: 'bg-indigo-500',
+                textColor: 'text-indigo-500',
+                icon: `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"></path></svg>`
+            }
+        };
+
+        // מצב (State) האפליקציה המרכזי
+        const state = {
+            step: 'login', // login, setup, dashboard
+            activeTab: 'status', // status, chat, settings
+            username: '',
+            localUserId: 'user_' + Math.random().toString(36).substring(2, 9),
+            roomId: '',
+            userLimits: {
+                youtube: 60,
+                tiktok: 45,
+                instagram: 30,
+                games: 90
+            },
+            roomData: {
+                members: {},
+                chatMessages: []
+            }
+        };
+
+        // אתחול Firebase בגרסת Compat היציבה
+        let db = null;
+        let auth = null;
+        let appId = 'scrollguard-default';
+        let firebaseConnected = false;
+        let roomUnsubscribe = null;
+
+        // טעינת הגדרות ענן
+        if (typeof window.__firebase_config !== 'undefined' && window.__firebase_config) {
+            try {
+                const firebaseConfig = JSON.parse(window.__firebase_config);
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+                appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'scrollguard-default';
+                firebaseConnected = true;
+
+                // התחברות אנונימית ברקע
+                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+                    auth.signInWithCustomToken(window.__initial_auth_token).catch(err => console.error(err));
+                } else {
+                    auth.signInAnonymously().catch(err => console.error(err));
+                }
+            } catch (e) {
+                console.error("Firebase initialization failed:", e);
+            }
+        }
+
+        // טעינת אירועים בהתחלה
+        window.addEventListener('DOMContentLoaded', () => {
+            initLoginHandler();
+            initSetupHandler();
+            initChatHandler();
+            renderLimitsSetup();
+        });
+
+        // 1. טיפול בשלב כניסת השם (Login)
+        function initLoginHandler() {
+            const form = document.getElementById('login-form');
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nameVal = document.getElementById('input-username').value.trim();
+                if (nameVal) {
+                    state.username = nameVal;
+                    goToStep('setup');
+                }
+            });
+        }
+
+        // 2. רינדור סליידרים להגדרת מגבלות
+        function renderLimitsSetup() {
+            const container = document.getElementById('limits-ranges-container');
+            container.innerHTML = '';
+
+            Object.keys(state.userLimits).forEach(key => {
+                const app = APP_DETAILS[key];
+                const div = document.createElement('div');
+                div.className = 'p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-2 animate-fade-in';
+                div.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg text-white ${app.color}">${app.icon}</span>
+                            <span class="font-bold text-sm text-slate-700">${app.name}</span>
+                        </div>
+                        <span id="limit-badge-${key}" class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                            ${state.userLimits[key]} דק׳
+                        </span>
+                    </div>
+                    <input type="range" min="5" max="180" step="5" value="${state.userLimits[key]}"
+                        oninput="updateLocalLimit('${key}', this.value)"
+                        class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600" />
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateLocalLimit(key, value) {
+            state.userLimits[key] = parseInt(value);
+            document.getElementById(`limit-badge-${key}`).innerText = `${value} דק׳`;
+        }
+
+        // 3. יצירה והצטרפות לחדרים
+        function initSetupHandler() {
+            document.getElementById('btn-create-room').addEventListener('click', handleCreateRoom);
+            document.getElementById('join-room-form').addEventListener('submit', handleJoinRoom);
+        }
+
+        async function handleCreateRoom() {
+            const generatedRoomId = 'SG-' + Math.floor(1000 + Math.random() * 9000);
+            state.roomId = generatedRoomId;
+
+            const initialMembers = {
+                [state.localUserId]: {
+                    name: state.username,
+                    limits: state.userLimits,
+                    usage: { youtube: 10, tiktok: 10, instagram: 5, games: 15 },
+                    isMe: true
+                }
+            };
+
+            const initialMessages = [
+                {
+                    id: 'sys_' + Date.now(),
+                    sender: 'מערכת',
+                    text: `ברוכות הבאות לאתגר הקבוצתי! שלחו את הקוד [ ${generatedRoomId} ] לחברות שלכן כדי שיצטרפו אליכן לאתגר! 🎯🚭`,
+                    time: getCurrentTime(),
+                    isSystem: true
+                }
+            ];
+
+            if (firebaseConnected && db) {
+                try {
+                    const roomDocRef = db.doc(`artifacts/${appId}/public/data/rooms/${generatedRoomId}`);
+                    await roomDocRef.set({
+                        roomId: generatedRoomId,
+                        createdAt: Date.now(),
+                        members: initialMembers,
+                        chatMessages: initialMessages
+                    });
+                    listenToRoom(generatedRoomId);
+                } catch (err) {
+                    console.error("Error creating room:", err);
+                    showLocalAlert("שגיאה ביצירת חדר בשרת. עובר למצב מקומי.");
+                    setLocalRoomFallback(initialMembers, initialMessages);
+                }
+            } else {
+                setLocalRoomFallback(initialMembers, initialMessages);
+            }
+
+            goToStep('dashboard');
+            switchTab('settings');
+        }
+
+        function setLocalRoomFallback(members, messages) {
+            state.roomData.members = members;
+            state.roomData.chatMessages = messages;
+            renderDashboard();
+        }
+
+        async function handleJoinRoom(e) {
+            e.preventDefault();
+            const inputVal = document.getElementById('input-join-room-id').value.trim().toUpperCase();
+            if (!inputVal) return;
+
+            if (firebaseConnected && db) {
+                try {
+                    const roomDocRef = db.doc(`artifacts/${appId}/public/data/rooms/${inputVal}`);
+                    const docSnap = await roomDocRef.get();
+
+                    if (docSnap.exists) {
+                        const data = docSnap.data();
+                        const updatedMembers = {
+                            ...data.members,
+                            [state.localUserId]: {
+                                name: state.username,
+                                limits: state.userLimits,
+                                usage: { youtube: 0, tiktok: 0, instagram: 0, games: 0 }
+                            }
+                        };
+
+                        const updatedMessages = [
+                            ...(data.chatMessages || []),
+                            {
+                                id: 'sys_' + Date.now(),
+                                sender: 'מערכת',
+                                text: `👋 ${state.username} הצטרפה לאתגר בהצלחה! בהצלחה לכולן!`,
+                                time: getCurrentTime(),
+                                isSystem: true
+                            }
+                        ];
+
+                        await roomDocRef.update({
+                            members: updatedMembers,
+                            chatMessages: updatedMessages
+                        });
+
+                        state.roomId = inputVal;
+                        listenToRoom(inputVal);
+                        goToStep('dashboard');
+                        switchTab('status');
+                    } else {
+                        showLocalAlert("❌ קוד קבוצה לא נמצא! ודאי שהקוד נכון ונסו שוב.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showLocalAlert("שגיאה בחיבור לשרת לצורך הצטרפות.");
+                }
+            } else {
+                showLocalAlert("לא ניתן להצטרף לחדר חיצוני ללא חיבור אינטרנט פעיל לענן.");
+            }
+        }
+
+        // האזנה דינמית לשינויים בחדר מענן Firebase
+        function listenToRoom(roomId) {
+            if (roomUnsubscribe) roomUnsubscribe();
+
+            const roomDocRef = db.doc(`artifacts/${appId}/public/data/rooms/${roomId}`);
+            roomUnsubscribe = roomDocRef.onSnapshot((docSnap) => {
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    state.roomData.members = data.members || {};
+                    state.roomData.chatMessages = data.chatMessages || [];
+                    renderDashboard();
+                }
+            }, (error) => {
+                console.error("Error listening to room:", error);
+            });
+        }
+
+        // 4. לוגיקת רינדור ועדכון ה-Dashboard (Status, Chat, Settings)
+        function renderDashboard() {
+            // עדכון קוד החדר בכותרת ובדף ההגדרות
+            document.getElementById('header-room-id').innerText = state.roomId;
+            document.getElementById('room-code-display').innerText = state.roomId;
+
+            // א. רינדור מדדי גלילה (Status Tab)
+            renderStatusTab();
+
+            // ב. רינדור צ'אט
+            renderChatTab();
+
+            // ג. רינדור כפתורי סימולטור גלילה בהגדרות
+            renderSimulatorButtons();
+        }
+
+        function renderStatusTab() {
+            const container = document.getElementById('status-apps-list');
+            container.innerHTML = '';
+
+            Object.keys(APP_DETAILS).forEach(appKey => {
+                const app = APP_DETAILS[appKey];
+                const appBlock = document.createElement('div');
+                appBlock.className = 'bg-slate-50/50 p-3 rounded-2xl border border-slate-100 space-y-3 animate-fade-in';
+
+                let membersListHTML = '';
+
+                Object.keys(state.roomData.members).forEach(mId => {
+                    const member = state.roomData.members[mId];
+                    const isMe = mId === state.localUserId;
+                    const usage = member.usage?.[appKey] || 0;
+                    const limit = member.limits?.[appKey] || 60;
+
+                    const pct = Math.min(Math.round((usage / limit) * 100), 100);
+                    const isNearLimit = pct >= 80 && pct < 100;
+                    const isViolated = pct >= 100;
+
+                    let statusText = `${pct}% שימוש`;
+                    let bgBarColor = 'bg-green-500';
+                    let borderClass = 'border-slate-100';
+
+                    if (isViolated) {
+                        statusText = '⚠️ חרגה מהגבול! הזמן של כולם קוצץ';
+                        bgBarColor = 'bg-red-500';
+                        borderClass = 'border-red-300 bg-red-50/30';
+                    } else if (isNearLimit) {
+                        statusText = '⚠️ כמעט חורגת!';
+                        bgBarColor = 'bg-amber-500';
+                        borderClass = 'border-amber-300 bg-amber-50/20';
+                    }
+
+                    // כפתור אזהרה לחברה
+                    let nudgeBtnHTML = '';
+                    if (!isMe && pct >= 75 && !isViolated) {
+                        nudgeBtnHTML = `
+                            <button onclick="sendNudge('${mId}', '${member.name}', '${app.name}')"
+                                    class="bg-amber-500 text-white font-black px-2 py-0.5 rounded-md hover:bg-amber-600 transition animate-pulse text-[9px]"
+                            >
+                                🚨 להזהיר אותה!
+                            </button>
+                        `;
+                    }
+
+                    membersListHTML += `
+                        <div class="p-2.5 rounded-xl bg-white border flex flex-col gap-1.5 shadow-sm relative ${borderClass}">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold flex items-center gap-1">
+                                    <span>${isMe ? '⭐ את' : (member.avatar || '👩') + ' ' + member.name}</span>
+                                </span>
+                                <span class="text-slate-500 text-[10px]">
+                                    ${usage} מתוך ${limit} דק׳
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div class="${bgBarColor} h-full transition-all duration-300" style="width: ${pct}%"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[9px]">
+                                <span class="font-semibold ${isViolated ? 'text-red-600' : isNearLimit ? 'text-amber-600' : 'text-slate-400'}">
+                                    ${statusText}
+                                </span>
+                                ${nudgeBtnHTML}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                appBlock.innerHTML = `
+                    <div class="flex items-center gap-2 text-sm font-bold border-b pb-2">
+                        <span class="p-1.5 rounded-lg text-white ${app.color}">${app.icon}</span>
+                        <span>מצב באפליקציית ${app.name}</span>
+                    </div>
+                    <div class="space-y-3">
+                        ${membersListHTML || '<p class="text-xs text-slate-400 text-center">אין עדיין חברות באתגר</p>'}
+                    </div>
+                `;
+                container.appendChild(appBlock);
+            });
+        }
+
+        function renderChatTab() {
+            const container = document.getElementById('chat-messages-container');
+            container.innerHTML = '';
+
+            let badgeCount = 0;
+
+            state.roomData.chatMessages.forEach(msg => {
+                if (msg.isSystem) {
+                    container.innerHTML += `
+                        <div class="w-full text-center my-1 animate-fade-in">
+                            <span class="inline-block bg-indigo-50 text-indigo-800 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg border border-indigo-100/50 max-w-[90%]">
+                                ${msg.text}
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    const isMe = msg.senderId === state.localUserId || msg.sender === state.username;
+                    container.innerHTML += `
+                        <div class="flex gap-1.5 max-w-[85%] ${isMe ? 'self-start flex-row-reverse' : 'self-end'}">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-bold mb-0.5 px-1 ${isMe ? 'text-left text-purple-600' : 'text-right text-slate-500'}">
+                                    ${msg.sender}
+                                </span>
+                                <div class="p-2.5 rounded-xl text-xs leading-relaxed shadow-sm ${isMe ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'}">
+                                    <p>${msg.text}</p>
+                                    <span class="text-[8px] block text-left mt-1 ${isMe ? 'text-purple-200' : 'text-slate-400'}">
+                                        ${msg.time}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            // עדכון באדג' הודעות בטאב הצ'אט במידה והמשתמשת אינה נמצאת בצ'אט
+            if (state.activeTab !== 'chat') {
+                badgeCount = state.roomData.chatMessages.length;
+                const badge = document.getElementById('chat-badge');
+                if (badgeCount > 0) {
+                    badge.innerText = badgeCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            // גלילה לתחתית הצ'אט
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 50);
+        }
+
+        function renderSimulatorButtons() {
+            const grid = document.getElementById('simulator-buttons-grid');
+            grid.innerHTML = '';
+
+            Object.keys(APP_DETAILS).forEach(appKey => {
+                let friendButtonsHTML = '';
+
+                Object.keys(state.roomData.members).forEach(mId => {
+                    const member = state.roomData.members[mId];
+                    const isMe = mId === state.localUserId;
+
+                    if (isMe) {
+                        friendButtonsHTML += `
+                            <button onclick="simulateUsage('${mId}', '${appKey}', 5)"
+                                    class="text-[9px] bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold py-1 rounded-md"
+                            >
+                                +5 דק׳ (בשבילך)
+                            </button>
+                        `;
+                    } else {
+                        friendButtonsHTML += `
+                            <button onclick="simulateUsage('${mId}', '${appKey}', 5)"
+                                    class="text-[8px] bg-slate-100 hover:bg-slate-200 text-slate-700 py-0.5 rounded-md"
+                            >
+                                +5 דק׳ (${member.name})
+                            </button>
+                        `;
+                    }
+                });
+
+                const div = document.createElement('div');
+                div.className = 'flex flex-col gap-1 p-2 bg-white rounded-xl border border-slate-100 shadow-sm';
+                div.innerHTML = `
+                    <span class="text-[10px] font-bold text-slate-700 text-center">${APP_DETAILS[appKey].name}</span>
+                    ${friendButtonsHTML}
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        // 5. שליחת הודעות צ'אט
+        function initChatHandler() {
+            document.getElementById('chat-send-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const msgInput = document.getElementById('input-chat-message');
+                const text = msgInput.value.trim();
+                if (!text) return;
+
+                const newMsg = {
+                    id: 'msg_' + Date.now(),
+                    sender: state.username,
+                    senderId: state.localUserId,
+                    text: text,
+                    time: getCurrentTime()
+                };
+
+                const updatedMessages = [...state.roomData.chatMessages, newMsg];
+
+                if (firebaseConnected && state.roomId) {
+                    const roomDocRef = db.doc(`artifacts/${appId}/public/data/rooms/${state.roomId}`);
+                    await roomDocRef.update({ chatMessages: updatedMessages });
+                } else {
+                    state.roomData.chatMessages = updatedMessages;
+                    renderDashboard();
+                }
+
+                msgInput.value = '';
+            });
+        }
+
+        // שליחת אזהרה
+        async function sendNudge(friendId, friendName, appName) {
+            const alertText = `🚨 ${state.username} שלחה אזהרה בהולה ל${friendName}: "את עומדת לחרוג ב${appName} ולהפחית לכולנו זמן!"`;
+
+            const newMsg = {
+                id: 'nudge_' + Date.now(),
+                sender: 'מערכת',
+                text: alertText,
+                time: getCurrentTime(),
+                isSystem: true
+            };
+
+            const updatedMessages = [...state.roomData.chatMessages, newMsg];
+
+            if (firebaseConnected && state.roomId) {
+                const roomDocRef = db.doc(`artifacts/${appId}/public/data/rooms/${state.roomId}`);
+                await roomDocRef.update({ chatMessages: updatedMessages });
+            } else {
+                state.roomData.chatMessages = updatedMessages;
+                renderDashboard();
+            }
+
+            showLocalAlert(`🔔 שלחת אזהרה ל${friendName}!`);
+        }
+
+        // הוספת חברות סימולציה
+        async function addSimulationFriends() {
+            const simulationMembers = {
+                'friend_shira': {
+                    name: 'שירה',
+                    limits: { youtube: 45, tiktok: 35, instagram: 40, games: 60 },
+                    usage: { youtube: 42, tiktok: 12, instagram: 15, games: 45 },
+                    avatar: '👩‍🦰'
+                },
+                'friend_noa': {
+                    name: 'נועה',
+                    limits: { youtube: 90, tiktok: 60, instagram: 50, games: 30 },
+                    usage: { youtube: 20, tiktok: 58, instagram: 12, games: 10 },
+                    avatar: '👱‍♀️'
+                },
+                'friend_maya': {
+                    name: 'מאיה',
+                    limits: { youtube: 30, tiktok: 40, instagram: 60, games: 45 },
+                    usage: { youtube: 15, tiktok: 10, instagram: 59, games: 5 },
+                    avatar: '👧'
+                }
+            };
+
+            const updatedMembers = {
+                ...state.roomData.members,
+                ...simulationMembers
+            };
+
+            const newSystemMsg = {
+                id: 'sys_' + Date.now(),
+                sender: 'מערכת',
+                text: `🤖 חברות סימולציה (שירה, נועה ומאיה) הצטרפו לאתגר כדי שתוכלי לבדוק איך הכל עובד!`,
+                time: getCurrentTime(),
+                isSystem: true
+            };
+
+            const updatedMessages = [...state.roomData.chatMessages, newSystemMsg];
+
+            if (firebaseConnected && state.roomId) {
+                const roomDocRef = db.doc(`artifacts/${appId}/public/data/rooms/${state.roomId}`);
+                await roomDocRef.update({
+                    members: updatedMembers,
+                    chatMessages: updatedMessages
+                });
+            } else {
+                state.roomData.members = updatedMembers;
+                state.roomData.chatMessages = updatedMessages;
+                renderDashboard();
+            }
+
+            showLocalAlert("👩‍🦰 שירה, נועה ומאיה נוספו לאתגר!");
+        }
+
+        // סימולציית גלילה + עונש
+        async function simulateUsage(targetUserId, appKey, amount) {
+            const currentMember = state.roomData.members[targetUserId];
+            if (!currentMember) return;
+
+            const oldUsage = currentMember.usage?.[appKey] || 0;
+            const newUsage = oldUsage + amount;
+            const limit = currentMember.limits?.[appKey] || 60;
+
+            const updatedMembers = { ...state.roomData.members };
+            updatedMembers[targetUserId] = {
+                ...currentMember,
+                usage: {
+                    ...(currentMember.usage || {}),
+                    [appKey]: newUsage
+                }
+            };
+
+            let updatedMessages = [...state.roomData.chatMessages];
+
+            // בדיקת חריגה פעם ראשונה
+            if (newUsage > limit && oldUsage <= limit) {
+                const appName = APP_DETAILS[appKey].name;
+                const userName = currentMember.name;
+
+                // קיצוץ זמן לכל שאר הבנות
+                Object.keys(updatedMembers).forEach(mId => {
+                    if (mId !== targetUserId) {
+                        const otherMember = updatedMembers[mId];
+                        const currentLimit = otherMember.limits?.[appKey] || 60;
+                        updatedMembers[mId] = {
+                            ...otherMember,
+                            limits: {
+                                ...(otherMember.limits || {}),
+                                [appKey]: Math.max(0, currentLimit - 5)
+                            }
+                        };
+                    }
+                });
+
+                updatedMessages.push({
+                    id: 'violation_' + Date.now(),
+                    sender: 'מערכת',
+                    text: `🚨 אבוי! ${userName} חרגה ב${appName}! כעונש, הופחתו לכל שאר החברות 5 דקות מהגלילה המותרת ב${appName}!`,
+                    time: getCurrentTime(),
+                    isSystem: true
+                });
+
+                showLocalAlert(`🚨 חריגה! ${userName} עברה את הגבול ב${appName}. שאר הבנות נענשו ב-5 דקות!`);
+            }
+
+            if (firebaseConnected && state.roomId) {
+                const roomDocRef = db.doc(`artifacts/${appId}/public/data/rooms/${state.roomId}`);
+                await roomDocRef.update({
+                    members: updatedMembers,
+                    chatMessages: updatedMessages
+                });
+            } else {
+                state.roomData.members = updatedMembers;
+                state.roomData.chatMessages = updatedMessages;
+                renderDashboard();
+            }
+        }
+
+        // פונקציות ניווט והצגה כלליות
+        function goToStep(stepId) {
+            state.step = stepId;
+            document.getElementById('step-login').classList.add('hidden');
+            document.getElementById('step-setup').classList.add('hidden');
+            document.getElementById('step-dashboard').classList.add('hidden');
+
+            document.getElementById(`step-${stepId}`).classList.remove('hidden');
+
+            if (stepId === 'dashboard') {
+                document.getElementById('header-room-info').classList.remove('hidden');
+                renderDashboard();
+            }
+        }
+
+        function switchTab(tabId) {
+            state.activeTab = tabId;
+
+            // הסתרת כל התכנים
+            document.getElementById('content-status').classList.add('hidden');
+            document.getElementById('content-chat').classList.add('hidden');
+            document.getElementById('content-settings').classList.add('hidden');
+
+            // ביטול סימון כפתורים
+            ['status', 'chat', 'settings'].forEach(id => {
+                const tabBtn = document.getElementById(`tab-${id}`);
+                tabBtn.className = "flex-1 py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all text-slate-500 hover:bg-slate-50 relative";
+            });
+
+            // הצגת התוכן הנבחר וסימון הכפתור שלו
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).className = "flex-1 py-2.5 rounded-xl font-bold text-xs flex flex-col items-center gap-1 transition-all bg-purple-600 text-white shadow-sm relative";
+
+            if (tabId === 'chat') {
+                // איפוס באדג' הודעות
+                document.getElementById('chat-badge').classList.add('hidden');
+                setTimeout(() => {
+                    const chatContainer = document.getElementById('chat-messages-container');
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 50);
+            }
+        }
+
+        function copyRoomCode() {
+            const tempInput = document.createElement('input');
+            tempInput.value = state.roomId;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            const btn = document.getElementById('btn-copy-code');
+            btn.innerText = 'הועתק! ✓';
+            setTimeout(() => {
+                btn.innerText = 'העתקת קוד';
+            }, 3000);
+        }
+
+        function showLocalAlert(text) {
+            const container = document.getElementById('alerts-container');
+            const alertId = 'alert_' + Date.now();
+
+            const div = document.createElement('div');
+            div.id = alertId;
+            div.className = "bg-red-600 text-white p-4 rounded-xl shadow-2xl border-2 border-red-400 flex items-center justify-between text-sm font-bold animate-bounce";
+            div.innerHTML = `
+                <span>${text}</span>
+                <button onclick="document.getElementById('${alertId}').remove()" class="mr-2 text-white hover:text-red-200">✕</button>
+            `;
+            container.appendChild(div);
+
+            setTimeout(() => {
+                const el = document.getElementById(alertId);
+                if (el) el.remove();
+            }, 4000);
+        }
+
+        function getCurrentTime() {
+            return new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+        }
+    </script>
+</body>
+</html>

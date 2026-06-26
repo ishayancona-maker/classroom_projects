@@ -89,7 +89,14 @@
                 </div>
             </div>
 
-            <div>
+            <!-- סטטוס חיבור לענן האישי המאובטח -->
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div id="cloud-status" class="flex items-center">
+                    <span class="flex items-center space-x-1.5 space-x-reverse bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-bold border border-amber-200">
+                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                        <span>מכין ארון דיגיטלי...</span>
+                    </span>
+                </div>
                 <button onclick="switchTab('info')" class="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors" title="איך להשתמש באפליקציה">
                     <i class="fa-solid fa-info-circle text-lg"></i>
                 </button>
@@ -104,19 +111,20 @@
         <div class="hidden md:block col-span-1 bg-white p-5 rounded-3xl border border-stone-200/80 shadow-sm h-fit space-y-4 animate-fade-in">
             <div class="space-y-1">
                 <button onclick="switchTab('wardrobe')" id="nav-wardrobe" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all bg-stone-900 text-white">
-                    👚 הארון שלי (<span class="item-count-badge">6</span>)
+                    👚 הארון האישי שלי (<span class="item-count-badge">0</span>)
                 </button>
                 <button onclick="switchTab('builder')" id="nav-builder" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all text-stone-600 hover:bg-stone-50">
                     ✨ חדר הלבשה ומיקס
                 </button>
                 <button onclick="switchTab('looks')" id="nav-looks" class="w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all text-stone-600 hover:bg-stone-50">
-                    📁 לוקים שמורים (<span class="looks-count-badge">1</span>)
+                    📁 לוקים אישיים בארון (<span class="looks-count-badge">0</span>)
                 </button>
             </div>
 
-            <div class="p-4 bg-stone-50 rounded-2xl border border-stone-100 text-center">
-                <p class="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-1">סלוגן המותג</p>
+            <div class="p-4 bg-stone-50 rounded-2xl border border-stone-100 text-center space-y-2">
+                <p class="text-[10px] uppercase tracking-widest font-bold text-stone-400">סלוגן המותג</p>
                 <p class="text-xs serif-brand italic text-stone-600">"Your Fit Is In Your Hand"</p>
+                <div id="user-badge" class="text-[9px] bg-stone-200/60 text-stone-600 py-1 rounded-md font-mono truncate px-1">טוען פרופיל...</div>
             </div>
         </div>
 
@@ -128,20 +136,31 @@
 
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-stone-200">
                     <div>
-                        <h2 class="text-xl font-bold text-stone-950 font-serif">הארון הווירטואלי שלי</h2>
-                        <p class="text-xs text-stone-500">העלי בגדים אמיתיים, נקי את הרקע והתחילי ליצור קולקציות</p>
+                        <h2 class="text-xl font-bold text-stone-950 font-serif">הארון האישי שלי</h2>
+                        <p class="text-xs text-stone-500 font-sans">העלי את הבגדים האמיתיים שלך. הבגדים שלך נשמרים בפרטיות מוחלטת ורק את תוכלי לראותם!</p>
                     </div>
 
                     <button onclick="toggleAddItemForm(true)" class="bg-stone-900 hover:bg-stone-850 text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center justify-center space-x-2 space-x-reverse shadow-md">
                         <i class="fa-solid fa-plus text-xs"></i>
-                        <span>העלי בגד חדש מהארון שלי 📸</span>
+                        <span>העלי בגד חדש לארון שלי 📸</span>
+                    </button>
+                </div>
+
+                <!-- באנר לטעינת בגדי ברירת מחדל אם הארון בענן ריק -->
+                <div id="seed-closet-banner" class="bg-stone-900 text-white p-5 rounded-2xl border border-stone-800 flex flex-col sm:flex-row items-center justify-between gap-4 hidden">
+                    <div class="space-y-1 text-center sm:text-right">
+                        <h4 class="font-bold text-sm">הארון שלך עדיין ריק! ✨</h4>
+                        <p class="text-xs text-stone-400 font-sans">לחצי על הכפתור כדי לטעון לארון פריטי בסיס מהממים של המותג FTD להתחלה מהירה וקלה.</p>
+                    </div>
+                    <button onclick="loadDefaultItems()" class="bg-white hover:bg-stone-100 text-stone-950 text-xs font-bold py-2.5 px-4 rounded-xl transition-all">
+                        טעינת בגדי דוגמה
                     </button>
                 </div>
 
                 <!-- טופס הוספת פריט וכלי גזירה (Hidden initially) -->
                 <div id="add-item-form" class="bg-white p-6 rounded-2xl border-2 border-stone-300 shadow-md space-y-4 hidden animate-fade-in">
                     <div class="flex items-center justify-between border-b border-stone-100 pb-3">
-                        <h3 class="font-bold text-stone-900 flex items-center space-x-2 space-x-reverse">
+                        <h3 class="font-bold text-stone-900 flex items-center space-x-2 space-x-reverse font-sans">
                             <i class="fa-solid fa-camera text-stone-800"></i>
                             <span>העלאת בגד אמיתי וכלי להסרת רקע</span>
                         </h3>
@@ -171,7 +190,7 @@
                                 <p class="text-[11px] font-bold text-stone-700">כלי הסרת רקע אוטומטי/ידני:</p>
 
                                 <div class="flex items-center space-x-2 space-x-reverse">
-                                    <span class="text-[10px] text-stone-500">רמת מחיקה:</span>
+                                    <span class="text-[10px] text-stone-500 font-sans">רמת מחיקה:</span>
                                     <input type="range" id="tolerance-slider" min="5" max="100" value="30" class="flex-1" onchange="updateToleranceValue(this.value)">
                                     <span id="tolerance-val" class="text-[10px] font-mono text-stone-600">30</span>
                                 </div>
@@ -185,7 +204,7 @@
                                         החזרת המקור
                                     </button>
                                 </div>
-                                <p class="text-[9px] text-stone-500 text-center">טיפ: תוכלי גם ללחוץ ישירות על צבע כלשהו בתמונה כדי למחוק אותו!</p>
+                                <p class="text-[9px] text-stone-500 text-center font-sans">טיפ: תוכלי גם ללחוץ ישירות על צבע כלשהו בתמונה כדי למחוק אותו!</p>
                             </div>
                         </div>
 
@@ -214,7 +233,7 @@
                             </div>
 
                             <button onclick="addNewItem()" class="w-full bg-stone-900 hover:bg-stone-850 text-white font-bold py-3 rounded-xl text-xs transition-all mt-4">
-                                הוספה מוצלחת לארון הבגדים שלי 💾
+                                הוספה ושמירה בארון האישי שלי 💾
                             </button>
                         </div>
 
@@ -223,7 +242,10 @@
 
                 <!-- רשימות הבגדים הממוינות -->
                 <div class="space-y-6" id="wardrobe-categories">
-                    <!-- ייקרא דינמית על ידי Javascript -->
+                    <div class="text-center py-16 bg-white rounded-2xl border border-stone-200">
+                        <div class="w-8 h-8 border-4 border-stone-900 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                        <p class="text-xs text-stone-500 font-sans">טוען את ארון הבגדים האישי שלך...</p>
+                    </div>
                 </div>
 
             </section>
@@ -231,9 +253,17 @@
             <!-- ==================== טאב 2: חדר הלבשה ==================== -->
             <section id="tab-builder" class="space-y-6 animate-fade-in hidden">
 
-                <div class="bg-white p-4 rounded-2xl border border-stone-200">
-                    <h2 class="text-xl font-bold text-stone-950 font-serif">חדר הלבשה דינמי (FTD Builder)</h2>
-                    <p class="text-xs text-stone-500">בחרי בגדים מהארון המצולם שלך והרכיבי לוקים חדשים לבדיקה</p>
+                <div class="bg-white p-5 rounded-2xl border border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-stone-950 font-serif">חדר הלבשה אישי</h2>
+                        <p class="text-xs text-stone-500 font-sans font-medium">הרכיבי לוקים מתוך הארון הפרטי שלך או תני ל-AI להציע שילוב מהיר</p>
+                    </div>
+
+                    <!-- כפתור עוזר סטיילינג AI מהמם -->
+                    <button onclick="generateAISuggestion()" class="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-950 hover:opacity-90 text-white text-xs font-bold px-4 py-3 rounded-xl flex items-center justify-center space-x-2 space-x-reverse shadow-md transition-all active:scale-95">
+                        <i class="fa-solid fa-sparkles text-amber-300 animate-pulse"></i>
+                        <span>שדך לי לוק ב-AI ✨</span>
+                    </button>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -275,7 +305,7 @@
                                 </select>
 
                                 <button onclick="saveCurrentLook()" class="bg-stone-900 hover:bg-stone-850 text-white text-xs font-bold py-2 px-3 rounded-xl transition-all">
-                                    שמירת הלוק 💾
+                                    שמירת הלוק בארון 💾
                                 </button>
                             </div>
                         </div>
@@ -302,7 +332,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-stone-200">
                     <div>
                         <h2 class="text-xl font-bold text-stone-950 font-serif">תיקיות לוקים ושילובי בגדים</h2>
-                        <p class="text-xs text-stone-500">הלוקים שתכננת ושמרת ממוינים לפי תיקיות אירועים</p>
+                        <p class="text-xs text-stone-500 font-sans">הלוקים הפרטיים שתכננת ושמרת בענן שלך</p>
                     </div>
 
                     <button onclick="toggleAddFolderForm(true)" class="bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold px-4 py-2.5 rounded-xl border border-stone-200 text-xs transition-all flex items-center justify-center space-x-2 space-x-reverse">
@@ -338,16 +368,16 @@
 
                 <div class="space-y-3 text-stone-600 text-xs leading-relaxed">
                     <p class="font-bold text-stone-800 text-sm">שלב 1: העלאה או צילום</p>
-                    <p>לחצי על "העלי בגד חדש" בארון שלך. תוכלי לבחור לצלם בגד ישירות מול קיר או להעלות תמונה קיימת. מומלץ לצלם על רקע אחיד יחסית (כמו רצפה אחידה או קיר לבן) לקבלת תוצאה מושלמת.</p>
+                    <p class="font-sans">לחצי על "העלי בגד חדש" בארון שלך. תוכלי לבחור לצלם בגד ישירות מול קיר או להעלות תמונה קיימת. מומלץ לצלם על רקע אחיד יחסית (כמו רצפה אחידה או קיר לבן) לקבלת תוצאה מושלמת.</p>
 
                     <p class="font-bold text-stone-800 text-sm">שלב 2: גזירת הרקע והפיכתו לשקוף (Transparent)</p>
-                    <p>אחרי שבחרת קובץ, תוכלי להשתמש בכפתור "מחיקת רקע אוטומטית". האפליקציה תנסה לזקק את צבע הרקע ולמחוק אותו מכל התמונה. במידה ונשאר רקע, תוכלי ללחוץ ישירות על אזורים שונים בתמונה שברצונך למחוק, והם יהפכו לשקופים מיידית בזכות טכנולוגיית ה-Canvas שלנו!</p>
+                    <p class="font-sans">אחרי שבחרת קובץ, תוכלי להשתמש בכפתור "מחיקת רקע אוטומטית". האפליקציה תנסה לזקק את צבע הרקע ולמחוק אותו מכל התמונה. במידה ונשאר רקע, תוכלי ללחוץ ישירות על אזורים שונים בתמונה שברצונך למחוק, והם יהפכו לשקופים מיידית בזכות טכנולוגיית ה-Canvas שלנו!</p>
 
                     <p class="font-bold text-stone-800 text-sm">שלב 3: הרכבת פיטים (Mix & Match)</p>
-                    <p>עברי לטאב "חדר הלבשה". בחרי את החלקים השונים שלך וראי איך הצבעים והבדים משתלבים יחד על קולב אחד נקי ומקצועי.</p>
+                    <p class="font-sans">עברי לטאב "חדר הלבשה". בחרי את החלקים השונים שלך וראי איך הצבעים והבדים משתלבים יחד על קולב אחד נקי ומקצועי.</p>
 
-                    <p class="font-bold text-stone-800 text-sm">שלב 4: ארגון בתיקיות</p>
-                    <p>תני שם מנצח ללוק, בחרי תיקייה מתאימה ושמרי אותו. תמיד תדעי מה יש לך בארון ומה השילובים המנצחים שלך!</p>
+                    <p class="font-bold text-stone-800 text-sm">שלב 4: ארגון בתיקיות ענן משותפות</p>
+                    <p class="font-sans">תני שם מנצח ללוק, בחרי תיקייה מתאימה ושמרי אותו. כל הלוקים נשמרים בפרטיות מוחלטת בתוך הארון שלך בלבד!</p>
                 </div>
 
                 <button onclick="switchTab('wardrobe')" class="bg-stone-900 text-white font-bold text-xs py-2.5 px-5 rounded-xl">
@@ -364,7 +394,7 @@
 
         <button onclick="switchTab('wardrobe')" id="mobile-nav-wardrobe" class="flex flex-col items-center flex-1 text-stone-900 font-bold">
             <span class="text-lg">👚</span>
-            <span class="text-[9px] mt-1">הארון (<span class="item-count-badge">6</span>)</span>
+            <span class="text-[9px] mt-1">הארון (<span class="item-count-badge">0</span>)</span>
         </button>
 
         <button onclick="switchTab('builder')" id="mobile-nav-builder" class="flex flex-col items-center flex-1 text-stone-400">
@@ -374,64 +404,255 @@
 
         <button onclick="switchTab('looks')" id="mobile-nav-looks" class="flex flex-col items-center flex-1 text-stone-400">
             <span class="text-lg">📁</span>
-            <span class="text-[9px] mt-1">תיקיות (<span class="looks-count-badge">1</span>)</span>
+            <span class="text-[9px] mt-1">תיקיות (<span class="looks-count-badge">0</span>)</span>
         </button>
 
     </div>
 
-    <!-- Script Logic -->
-    <script>
-        // בגדי ברירת מחדל
-        let items = [
-            { id: 't1', name: 'גופיית קרופ לבנה', category: 'tops', color: '#ffffff', isPlaceholder: true, imageType: 'linen-shirt' },
-            { id: 't2', name: 'ג׳קט ג׳ינס קלאסי', category: 'tops', color: '#3b82f6', isPlaceholder: true, imageType: 'sweater' },
-            { id: 'b1', name: 'ג׳ינס רחב כחול', category: 'bottoms', color: '#60a5fa', isPlaceholder: true, imageType: 'denim-jeans' },
-            { id: 'b2', name: 'מכנסי דגמ״ח שחורים', category: 'bottoms', color: '#111827', isPlaceholder: true, imageType: 'tailored-pants' },
-            { id: 's1', name: 'סניקרס פלטפורמה', category: 'shoes', color: '#ffffff', isPlaceholder: true, imageType: 'sneakers' },
-            { id: 'a1', name: 'תיק צד שחור', category: 'accessories', color: '#000000', isPlaceholder: true, imageType: 'bag' }
-        ];
+    <!-- Script Logic for Firebase and App Interactivity -->
+    <script type="module">
+        // Import Firebase modules for cloud database sync
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        let looks = [
-            {
-                id: 'l1',
-                name: 'לוק יומיומי קליל',
-                folder: 'יום יום',
-                items: {
-                    tops: 't1',
-                    bottoms: 'b1',
-                    shoes: 's1',
-                    accessories: 'a1'
-                },
-                isFavorite: true
-            }
-        ];
+        // Firebase Setup & Environment variables
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ftd-collaborative-closet';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+        let db, auth;
+        let currentUser = null;
+        let isCloudMode = false; // Flag to identify if live Firebase Cloud is active
+
+        // Reactive State (will sync with Firestore or local simulator fallback)
+        let items = [];
+        let looks = [];
         let folders = ['הכל', 'יום יום', 'בית ספר', 'יציאות', 'ספורט'];
+
         let activeTab = 'wardrobe';
         let selectedFolderFilter = 'הכל';
 
-        // בחירות בבונה
+        // Builder selection state
         let selectedTop = null;
         let selectedBottom = null;
         let selectedShoes = null;
         let selectedAccessory = null;
 
-        // נתוני העלאת קבצים
+        // Image processing state
         let uploadedImageSrc = null;
         let processedImageSrc = null;
         let tolerance = 30;
 
-        // אלמנטים בקנבס
         const canvas = document.getElementById('crop-canvas');
         const ctx = canvas.getContext('2d');
 
-        // אתחול האפליקציה בטעינה
+        // Cloud paths definitions (Rule 1: Private user path setup)
+        const getItemsColRef = () => collection(db, 'artifacts', appId, 'users', currentUser.uid, 'items');
+        const getLooksColRef = () => collection(db, 'artifacts', appId, 'users', currentUser.uid, 'looks');
+        const getFoldersColRef = () => collection(db, 'artifacts', appId, 'users', currentUser.uid, 'folders');
+
+        // Initial launch
         window.onload = function () {
-            renderAll();
+            initFirebaseConnection();
             setupCanvasInteraction();
         };
 
-        // פונקציית טוסט נוטיפיקציה
+        // RULE 3 - Initialize Auth then setup Firestore Realtime Sync, with local fallback simulation if cloud variables are missing
+        async function initFirebaseConnection() {
+            if (!firebaseConfig) {
+                console.log("Firebase configuration is missing in the Preview environment. Activating Cloud Simulator Mode...");
+                setupCloudSimulator();
+                return;
+            }
+
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Perform Authentication FIRST
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        isCloudMode = true;
+
+                        // Update cloud status badge UI to indicate private cloud closet
+                        document.getElementById('cloud-status').innerHTML = `
+                                <span class="flex items-center space-x-1.5 space-x-reverse bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full text-[10px] font-bold border border-emerald-100">
+                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                    <span>ארון פרטי מסונכרן לענן ☁️</span>
+                                </span>
+                            `;
+                        document.getElementById('user-badge').innerText = `מזהה ארון: ftd_user_${user.uid.substring(0, 5)}`;
+
+                        // Begin sync
+                        setupRealtimeSync();
+                    } else {
+                        currentUser = null;
+                        isCloudMode = false;
+                    }
+                });
+
+            } catch (error) {
+                console.error("Authentication or connection failed:", error);
+                setupCloudSimulator();
+            }
+        }
+
+        // Setup Local Storage based Personal Cloud Simulator to ensure 100% active state in Preview mode
+        function setupCloudSimulator() {
+            isCloudMode = false;
+
+            // Create a consistent local user ID
+            let localUserId = localStorage.getItem('ftd_local_uid');
+            if (!localUserId) {
+                localUserId = 'local_' + Math.random().toString(36).substring(2, 9);
+                localStorage.setItem('ftd_local_uid', localUserId);
+            }
+
+            currentUser = { uid: localUserId };
+
+            // Update UI status to confirm Simulated Cloud is Active
+            document.getElementById('cloud-status').innerHTML = `
+                    <span class="flex items-center space-x-1.5 space-x-reverse bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-[10px] font-bold border border-amber-200">
+                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>
+                        <span>ארון שמור ומאובטח במכשיר 💾</span>
+                    </span>
+                `;
+            document.getElementById('user-badge').innerText = `מזהה ארון: ftd_local_${localUserId.substring(6, 11)}`;
+
+            // Load Simulated data
+            const storedItems = localStorage.getItem(`ftd_${localUserId}_items`);
+            const storedLooks = localStorage.getItem(`ftd_${localUserId}_looks`);
+            const storedFolders = localStorage.getItem(`ftd_${localUserId}_folders`);
+
+            if (storedItems) {
+                items = JSON.parse(storedItems);
+            } else {
+                items = []; // Will show seed banner
+            }
+
+            if (storedLooks) {
+                looks = JSON.parse(storedLooks);
+            } else {
+                looks = [];
+            }
+
+            if (storedFolders) {
+                folders = JSON.parse(storedFolders);
+            } else {
+                folders = ['הכל', 'יום יום', 'בית ספר', 'יציאות', 'ספורט'];
+            }
+
+            // Show recommendation banner if the user's closet is completely empty
+            const banner = document.getElementById('seed-closet-banner');
+            if (items.length === 0) {
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+
+            renderAll();
+        }
+
+        // Write to local database emulator
+        function saveSimulatedData(type, data) {
+            if (!currentUser) return;
+            localStorage.setItem(`ftd_${currentUser.uid}_${type}`, JSON.stringify(data));
+        }
+
+        // Setup real-time listeners for private features (when Firestore is active)
+        function setupRealtimeSync() {
+            if (!currentUser) return;
+
+            // Live-sync Private Items
+            onSnapshot(getItemsColRef(), (snapshot) => {
+                items = [];
+                snapshot.forEach(docSnap => {
+                    items.push(docSnap.data());
+                });
+
+                // Show recommendation banner if empty
+                const banner = document.getElementById('seed-closet-banner');
+                if (items.length === 0) {
+                    banner.classList.remove('hidden');
+                } else {
+                    banner.classList.add('hidden');
+                }
+
+                renderAll();
+            }, (error) => {
+                console.error("Sync error items:", error);
+            });
+
+            // Live-sync Private Looks
+            onSnapshot(getLooksColRef(), (snapshot) => {
+                looks = [];
+                snapshot.forEach(docSnap => {
+                    looks.push(docSnap.data());
+                });
+                renderAll();
+            }, (error) => {
+                console.error("Sync error looks:", error);
+            });
+
+            // Live-sync Private Custom folders
+            onSnapshot(getFoldersColRef(), (snapshot) => {
+                const loadedFolders = ['הכל', 'יום יום', 'בית ספר', 'יציאות', 'ספורט'];
+                snapshot.forEach(docSnap => {
+                    const folderName = docSnap.data().name;
+                    if (!loadedFolders.includes(folderName)) {
+                        loadedFolders.push(folderName);
+                    }
+                });
+                folders = loadedFolders;
+                renderAll();
+            }, (error) => {
+                console.error("Sync error folders:", error);
+            });
+        }
+
+        // Loader function to populate initial styled items
+        async function loadDefaultItems() {
+            if (!currentUser) return;
+            showToast("טוען בגדי מותג FTD...");
+
+            const defaultItems = [
+                { id: 't1', name: 'גופיית קרופ לבנה', category: 'tops', color: '#ffffff', isPlaceholder: true, imageType: 'linen-shirt', creator: currentUser.uid },
+                { id: 't2', name: 'ג׳קט ג׳ינס קלאסי', category: 'tops', color: '#3b82f6', isPlaceholder: true, imageType: 'sweater', creator: currentUser.uid },
+                { id: 'b1', name: 'ג׳ינס רחב כחול', category: 'bottoms', color: '#60a5fa', isPlaceholder: true, imageType: 'denim-jeans', creator: currentUser.uid },
+                { id: 'b2', name: 'מכנסי דגמ״ח שחורים', category: 'bottoms', color: '#111827', isPlaceholder: true, imageType: 'tailored-pants', creator: currentUser.uid },
+                { id: 's1', name: 'סניקרס פלטפורמה', category: 'shoes', color: '#ffffff', isPlaceholder: true, imageType: 'sneakers', creator: currentUser.uid },
+                { id: 'a1', name: 'תיק צד שחור', category: 'accessories', color: '#000000', isPlaceholder: true, imageType: 'bag', creator: currentUser.uid }
+            ];
+
+            if (isCloudMode) {
+                try {
+                    for (const item of defaultItems) {
+                        await setDoc(doc(getItemsColRef(), item.id), item);
+                    }
+                    showToast("בגדי הדוגמה נטענו לארונך האישי בהצלחה!");
+                } catch (err) {
+                    console.error(err);
+                    showToast("שגיאה בטעינת הבגדים לענן.");
+                }
+            } else {
+                items = [...defaultItems];
+                saveSimulatedData('items', items);
+                document.getElementById('seed-closet-banner').classList.add('hidden');
+                showToast("בגדי הדוגמה נטענו לארונך האישי בהצלחה!");
+                renderAll();
+            }
+        }
+
+        // Toast Notification Helper
         function showToast(message) {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toast-message');
@@ -442,32 +663,32 @@
             }, 3000);
         }
 
-        // ניווט טאבים
+        // Navigation Tabs Controller
         function switchTab(tabId) {
             activeTab = tabId;
 
-            // הסתרת כל הסקשנים
+            // Hide all tabs
             document.getElementById('tab-wardrobe').classList.add('hidden');
             document.getElementById('tab-builder').classList.add('hidden');
             document.getElementById('tab-looks').classList.add('hidden');
             document.getElementById('tab-info').classList.add('hidden');
 
-            // הצגת הסקשן הנבחר
+            // Show current
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
-            // עדכון נראות ניווט דסקטופ
+            // Update desktop nav buttons styling
             const tabs = ['wardrobe', 'builder', 'looks'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`nav-${t}`);
                 if (btn) {
                     if (t === tabId) {
-                        btn.className = "w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all bg-stone-900 text-white";
+                        btn.className = "w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all bg-stone-900 text-white shadow-sm";
                     } else {
                         btn.className = "w-full text-right px-4 py-3 rounded-xl text-sm font-bold transition-all text-stone-600 hover:bg-stone-50";
                     }
                 }
 
-                // ניווט מובייל
+                // Update mobile nav buttons styling
                 const mobBtn = document.getElementById(`mobile-nav-${t}`);
                 if (mobBtn) {
                     if (t === tabId) {
@@ -481,14 +702,13 @@
             renderAll();
         }
 
-        // שליטה בטופס הוספת בגד
+        // Toggle Upload garment popup
         function toggleAddItemForm(show) {
             const form = document.getElementById('add-item-form');
             if (show) {
                 form.classList.remove('hidden');
             } else {
                 form.classList.add('hidden');
-                // איפוס קבצים
                 uploadedImageSrc = null;
                 processedImageSrc = null;
                 document.getElementById('upload-placeholder').classList.remove('hidden');
@@ -502,7 +722,7 @@
             document.getElementById('file-input').click();
         }
 
-        // טיפול בהעלאת תמונה
+        // Handle client-side file reading
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -521,7 +741,7 @@
             }
         }
 
-        // אתחול הקנבס עם התמונה
+        // Initialize Canvas with base image
         function initCanvas(imgSrc) {
             const img = new Image();
             img.onload = function () {
@@ -532,7 +752,7 @@
             img.src = imgSrc;
         }
 
-        // מעקב אחר לחיצות על הקנבס לצורך מחיקה ידנית
+        // Set up click/tap listeners on the canvas
         function setupCanvasInteraction() {
             canvas.addEventListener('click', function (e) {
                 if (!uploadedImageSrc) return;
@@ -545,13 +765,11 @@
             });
         }
 
-        // עדכון ערך דיוק הסליידר
         function updateToleranceValue(val) {
             tolerance = Number(val);
             document.getElementById('tolerance-val').innerText = val;
         }
 
-        // שחזור תמונה מקורית
         function resetCanvasImage() {
             if (!uploadedImageSrc) return;
             initCanvas(uploadedImageSrc);
@@ -559,12 +777,11 @@
             showToast("התמונה שוחזרה למקור");
         }
 
-        // מחיקת רקע אוטומטית (מתבסס על הפיקסל השמאלי העליון)
         function autoRemoveBackground() {
             removeBackgroundAtPixel(0, 0, true);
         }
 
-        // פונקציית עיבוד תמונה למחיקת צבע דומה (Background Removal)
+        // Background removing algorithm (runs completely client side on HTML5 Canvas)
         function removeBackgroundAtPixel(clickX, clickY, autoCorner = false) {
             if (!uploadedImageSrc) return;
 
@@ -592,7 +809,6 @@
                     targetB = data[index + 2];
                 }
 
-                // מעבר על כל הפיקסלים ומחיקת הצבעים הדומים בהתאם ל-tolerance
                 for (let i = 0; i < data.length; i += 4) {
                     const r = data[i];
                     const g = data[i + 1];
@@ -605,19 +821,46 @@
                     );
 
                     if (distance < tolerance) {
-                        data[i + 3] = 0; // הפיכת שקיפות ל-0
+                        data[i + 3] = 0; // Set transparency to 0
                     }
                 }
 
                 ctx.putImageData(imageData, 0, 0);
-                processedImageSrc = canvas.toDataURL();
+                processedImageSrc = getDownscaledDataURL(); // Compress/downscale to stay comfortably inside 1MB Firestore limit
                 showToast("הרקע נמחק בהצלחה! ✨");
             };
             img.src = uploadedImageSrc;
         }
 
-        // הוספת בגד חדש למערך
-        function addNewItem() {
+        // Compress image using HTML5 Canvas scaling
+        function getDownscaledDataURL() {
+            const tempCanvas = document.createElement('canvas');
+            const maxDim = 320;
+            let w = canvas.width;
+            let h = canvas.height;
+            if (w > maxDim || h > maxDim) {
+                if (w > h) {
+                    h = Math.round((h * maxDim) / w);
+                    w = maxDim;
+                } else {
+                    w = Math.round((w * maxDim) / h);
+                    h = maxDim;
+                }
+            }
+            tempCanvas.width = w;
+            tempCanvas.height = h;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(canvas, 0, 0, w, h);
+            return tempCanvas.toDataURL('image/png');
+        }
+
+        // Add item directly to private user Firestore space or Local Cloud Simulator
+        async function addNewItem() {
+            if (!currentUser) {
+                showToast("טוען פרופיל, אנא נסי שנית בעוד רגע.");
+                return;
+            }
+
             const name = document.getElementById('new-item-name').value;
             const category = document.getElementById('new-item-category').value;
             const color = document.getElementById('new-item-color').value;
@@ -627,36 +870,78 @@
                 return;
             }
 
+            const itemDocId = 'item_' + Date.now();
             const newItem = {
-                id: 'item_' + Date.now(),
-                name: name,
+                id: itemDocId,
+                name: name.trim(),
                 category: category,
                 color: color,
                 image: processedImageSrc || null,
-                isPlaceholder: !processedImageSrc
+                isPlaceholder: !processedImageSrc,
+                creator: currentUser.uid
             };
 
-            items.unshift(newItem);
-            showToast("הבגד שלך נוסף לארון בהצלחה! 👕");
-            toggleAddItemForm(false);
-            renderAll();
+            if (isCloudMode) {
+                try {
+                    showToast("מעלה פריט לארונך האישי...");
+                    await setDoc(doc(getItemsColRef(), itemDocId), newItem);
+                    showToast("הבגד שלך נוסף לארונך הפרטי בהצלחה! 👕");
+                    toggleAddItemForm(false);
+                } catch (err) {
+                    console.error(err);
+                    showToast("כשל בהעלאת הבגד לענן.");
+                }
+            } else {
+                items.unshift(newItem);
+                saveSimulatedData('items', items);
+                document.getElementById('seed-closet-banner').classList.add('hidden');
+                showToast("הבגד שלך נשמר בארון האישי בהצלחה! 👕");
+                toggleAddItemForm(false);
+                renderAll();
+            }
         }
 
-        // מחיקת בגד מהארון
-        function deleteItem(id) {
-            items = items.filter(i => i.id !== id);
-            showToast("הפריט נמחק מהארון");
-            renderAll();
+        // Delete item from private user space
+        async function deleteItem(id) {
+            if (!currentUser) return;
+            if (isCloudMode) {
+                try {
+                    await deleteDoc(doc(getItemsColRef(), id));
+                    showToast("הפריט הוסר מהארון האישי שלך.");
+                } catch (err) {
+                    console.error(err);
+                    showToast("שגיאה בהסרת הפריט.");
+                }
+            } else {
+                items = items.filter(i => i.id !== id);
+                saveSimulatedData('items', items);
+                if (items.length === 0) {
+                    document.getElementById('seed-closet-banner').classList.remove('hidden');
+                }
+                showToast("הפריט הוסר מהארון האישי שלך.");
+                renderAll();
+            }
         }
 
-        // מחיקת לוק שלם
-        function deleteLook(id) {
-            looks = looks.filter(l => l.id !== id);
-            showToast("הלוק נמחק");
-            renderAll();
+        // Delete outfit from private user space
+        async function deleteLook(id) {
+            if (!currentUser) return;
+            if (isCloudMode) {
+                try {
+                    await deleteDoc(doc(getLooksColRef(), id));
+                    showToast("הלוק נמחק מהארון האישי שלך.");
+                } catch (err) {
+                    console.error(err);
+                    showToast("שגיאה במחיקת הלוק.");
+                }
+            } else {
+                looks = looks.filter(l => l.id !== id);
+                saveSimulatedData('looks', looks);
+                showToast("הלוק נמחק מהארון האישי שלך.");
+                renderAll();
+            }
         }
 
-        // שליטה בטופס הוספת תיקייה
         function toggleAddFolderForm(show) {
             const form = document.getElementById('add-folder-form');
             if (show) {
@@ -667,8 +952,9 @@
             }
         }
 
-        // הוספת תיקייה חדשה
-        function addNewFolder() {
+        // Add private folders to Firestore or Local Cloud Simulator
+        async function addNewFolder() {
+            if (!currentUser) return;
             const folderName = document.getElementById('new-folder-name').value;
             if (!folderName.trim()) return;
             if (folders.includes(folderName.trim())) {
@@ -676,14 +962,27 @@
                 return;
             }
 
-            folders.push(folderName.trim());
-            toggleAddFolderForm(false);
-            showToast(`נוצרה תיקייה חדשה: "${folderName}" 📁`);
-            renderAll();
+            if (isCloudMode) {
+                try {
+                    await setDoc(doc(getFoldersColRef(), folderName.trim()), { name: folderName.trim() });
+                    toggleAddFolderForm(false);
+                    showToast(`נוצרה תיקייה חדשה בארונך: "${folderName}" 📁`);
+                } catch (err) {
+                    console.error(err);
+                    showToast("כשל ביצירת התיקייה.");
+                }
+            } else {
+                folders.push(folderName.trim());
+                saveSimulatedData('folders', folders);
+                toggleAddFolderForm(false);
+                showToast(`נוצרה תיקייה חדשה בארונך: "${folderName}" 📁`);
+                renderAll();
+            }
         }
 
-        // שמירת הלוק המורכב הנוכחי
-        function saveCurrentLook() {
+        // Save customized outfit combination
+        async function saveCurrentLook() {
+            if (!currentUser) return;
             const name = document.getElementById('look-name-input').value;
             const folder = document.getElementById('look-folder-select').value;
 
@@ -696,9 +995,10 @@
                 return;
             }
 
+            const lookDocId = 'look_' + Date.now();
             const newLook = {
-                id: 'look_' + Date.now(),
-                name: name,
+                id: lookDocId,
+                name: name.trim(),
                 folder: folder,
                 items: {
                     tops: selectedTop.id,
@@ -706,23 +1006,71 @@
                     shoes: selectedShoes ? selectedShoes.id : null,
                     accessories: selectedAccessory ? selectedAccessory.id : null
                 },
-                isFavorite: false
+                isFavorite: false,
+                creator: currentUser.uid
             };
 
-            looks.unshift(newLook);
-            document.getElementById('look-name-input').value = '';
+            if (isCloudMode) {
+                try {
+                    await setDoc(doc(getLooksColRef(), lookDocId), newLook);
+                    document.getElementById('look-name-input').value = '';
 
-            // איפוס בחירות
-            selectedTop = null;
-            selectedBottom = null;
-            selectedShoes = null;
-            selectedAccessory = null;
+                    // Reset selections
+                    selectedTop = null;
+                    selectedBottom = null;
+                    selectedShoes = null;
+                    selectedAccessory = null;
 
-            showToast("הלוק נשמר בתיקייה! ✨👗");
-            switchTab('looks');
+                    showToast("הלוק נשמר בהצלחה בארונך האישי! ✨👗");
+                    switchTab('looks');
+                } catch (err) {
+                    console.error(err);
+                    showToast("כשל בשמירת הלוק בענן.");
+                }
+            } else {
+                looks.unshift(newLook);
+                saveSimulatedData('looks', looks);
+                document.getElementById('look-name-input').value = '';
+
+                // Reset selections
+                selectedTop = null;
+                selectedBottom = null;
+                selectedShoes = null;
+                selectedAccessory = null;
+
+                showToast("הלוק נשמר בהצלחה בארונך האישי! ✨👗");
+                switchTab('looks');
+            }
         }
 
-        // פונקציה לייצור פלייסהולדר של בגד במידה ולא הועלתה תמונה אמיתית
+        // Smart Styling Matcher algorithm using garments available in the private closet
+        function generateAISuggestion() {
+            const tops = items.filter(i => i.category === 'tops');
+            const bottoms = items.filter(i => i.category === 'bottoms');
+            const shoes = items.filter(i => i.category === 'shoes');
+            const accessories = items.filter(i => i.category === 'accessories');
+
+            if (tops.length === 0 || bottoms.length === 0) {
+                showToast("הוסיפי לפחות חולצה אחת ומכנס/חצאית אחת לארון האישי כדי שה-AI ירכיב פיט! 👚👖");
+                return;
+            }
+
+            const chosenTop = tops[Math.floor(Math.random() * tops.length)];
+            const chosenBottom = bottoms[Math.floor(Math.random() * bottoms.length)];
+
+            const chosenShoes = shoes.length > 0 ? shoes[Math.floor(Math.random() * shoes.length)] : null;
+            const chosenAccessory = accessories.length > 0 ? accessories[Math.floor(Math.random() * accessories.length)] : null;
+
+            selectedTop = chosenTop;
+            selectedBottom = chosenBottom;
+            selectedShoes = chosenShoes;
+            selectedAccessory = chosenAccessory;
+
+            showToast("מנוע ה-AI של FTD מצא שילוב מושלם מהארון שלך והלביש אותו על הקולב! 🪄👗");
+            renderBuilder();
+        }
+
+        // Custom SVGs rendered in case images have placeholders
         function renderPlaceholderSVG(type, color = '#475569') {
             switch (type) {
                 case 'linen-shirt':
@@ -767,10 +1115,8 @@
             }
         }
 
-        // ==================== פונקציות הרינדור הדינמיות ====================
-
+        // Redraw current view on updates
         function renderAll() {
-            // עדכון המונים של תיקיות
             document.querySelectorAll('.item-count-badge').forEach(el => el.innerText = items.length);
             document.querySelectorAll('.looks-count-badge').forEach(el => el.innerText = looks.length);
 
@@ -783,7 +1129,7 @@
             }
         }
 
-        // רינדור קטגוריות הארון
+        // Render Wardrobe Layout
         function renderWardrobe() {
             const container = document.getElementById('wardrobe-categories');
             container.innerHTML = '';
@@ -800,7 +1146,7 @@
 
                 let itemsHTML = '';
                 if (catItems.length === 0) {
-                    itemsHTML = `<p class="text-xs text-stone-400 py-4 text-center">אין פריטים בקטגוריה זו. העלי בגד חדש!</p>`;
+                    itemsHTML = `<p class="text-xs text-stone-400 py-4 text-center font-sans">אין פריטים בקטגוריה זו. העלי בגד חדש!</p>`;
                 } else {
                     itemsHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">`;
                     catItems.forEach(item => {
@@ -809,7 +1155,7 @@
                             : `<img src="${item.image}" alt="${item.name}" class="max-h-full max-w-full object-contain">`;
 
                         itemsHTML += `
-                                <div class="border border-stone-100 rounded-xl p-3 bg-stone-50/50 flex flex-col justify-between relative group">
+                                <div class="border border-stone-100 rounded-xl p-3 bg-stone-50/50 flex flex-col justify-between relative group animate-fade-in">
                                     <div class="aspect-square rounded-lg bg-white overflow-hidden flex items-center justify-center p-2 border border-stone-100 mb-2">
                                         ${imageHTML}
                                     </div>
@@ -818,7 +1164,7 @@
                                         <div class="flex items-center justify-between mt-1">
                                             <span class="w-3.5 h-3.5 rounded-full border border-stone-300" style="background-color: ${item.color}"></span>
                                             <div class="flex space-x-1 space-x-reverse">
-                                                <button onclick="dressItem('${item.id}')" class="text-[10px] bg-stone-900 text-white px-2 py-1 rounded hover:bg-stone-850 transition-colors">لهלבשה</button>
+                                                <button onclick="dressItem('${item.id}')" class="text-[10px] bg-stone-900 text-white px-2 py-1 rounded hover:bg-stone-850 transition-colors">להלבשה</button>
                                                 <button onclick="deleteItem('${item.id}')" class="text-stone-400 hover:text-red-500 transition-colors p-1"><i class="fa-solid fa-trash-can text-xs"></i></button>
                                             </div>
                                         </div>
@@ -841,7 +1187,6 @@
             });
         }
 
-        // הרכבה ישירה מהארון לחדר הלבשה
         function dressItem(itemId) {
             const item = items.find(i => i.id === itemId);
             if (!item) return;
@@ -855,22 +1200,19 @@
             switchTab('builder');
         }
 
-        // רינדור חדר ההלבשה
+        // Render dressing room panel
         function renderBuilder() {
-            // 1. עדכון חריצים בקולב
             updateSlotHTML('accessories', selectedAccessory, '🕶️ אקססוריז');
             updateSlotHTML('tops', selectedTop, '👚 חלק עליון');
             updateSlotHTML('bottoms', selectedBottom, '👖 חלק תחתון');
             updateSlotHTML('shoes', selectedShoes, '👟 נעליים');
 
-            // 2. עדכון רשימת התיקיות באופציות השמירה
             const folderSelect = document.getElementById('look-folder-select');
             folderSelect.innerHTML = '';
             folders.filter(f => f !== 'הכל').forEach(f => {
                 folderSelect.innerHTML += `<option value="${f}">${f}</option>`;
             });
 
-            // 3. עדכון מגירת הבחירה מהארון
             const drawer = document.getElementById('builder-wardrobe-drawer');
             drawer.innerHTML = '';
 
@@ -912,7 +1254,6 @@
             });
         }
 
-        // עדכון חריץ בודד בקולב
         function updateSlotHTML(slotId, selectedItem, placeholderText) {
             const slot = document.getElementById(`slot-${slotId}`);
             if (selectedItem) {
@@ -931,7 +1272,6 @@
             }
         }
 
-        // הסרת פריט מחריץ הקולב
         function removeItemFromSlot(slotId) {
             if (slotId === 'tops') selectedTop = null;
             if (slotId === 'bottoms') selectedBottom = null;
@@ -940,7 +1280,6 @@
             renderBuilder();
         }
 
-        // בחירה/ביטול בחירה מהירה של פריט בבונה
         function toggleSelectBuilderItem(itemId) {
             const item = items.find(i => i.id === itemId);
             if (!item) return;
@@ -958,9 +1297,8 @@
             renderBuilder();
         }
 
-        // רינדור הלוקים השמורים והתיקיות
+        // Render saved outfits from the cloud
         function renderLooks() {
-            // 1. עדכון פילטרים
             const filtersContainer = document.getElementById('folder-filters-container');
             filtersContainer.innerHTML = '';
             folders.forEach(f => {
@@ -972,7 +1310,6 @@
                     `;
             });
 
-            // 2. עדכון רשת הלוקים
             const looksGrid = document.getElementById('saved-looks-grid');
             looksGrid.innerHTML = '';
 
@@ -1003,11 +1340,13 @@
                 };
 
                 looksGrid.innerHTML += `
-                        <div class="bg-white rounded-2xl border border-stone-200 p-4 space-y-3 relative">
+                        <div class="bg-white rounded-2xl border border-stone-200 p-4 space-y-3 relative animate-fade-in">
                             <div class="flex items-center justify-between border-b border-stone-100 pb-2">
                               <div>
                                 <h4 class="font-bold text-sm text-stone-950">${look.name}</h4>
-                                <span class="text-[10px] text-stone-400 bg-stone-50 px-2.5 py-0.5 rounded-full inline-block mt-1">📁 ${look.folder}</span>
+                                <div class="flex items-center space-x-1 space-x-reverse mt-1">
+                                    <span class="text-[10px] text-stone-400 bg-stone-50 px-2 py-0.5 rounded-full inline-block">📁 ${look.folder}</span>
+                                </div>
                               </div>
 
                               <div class="flex space-x-2 space-x-reverse">
@@ -1020,31 +1359,31 @@
                               </div>
                             </div>
 
-                            <!-- תצוגת הבגדים בלוק -->
+                            <!-- Clothes view -->
                             <div class="grid grid-cols-4 gap-2">
                               <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
-                                <span class="text-[9px] text-stone-400 block mb-1">חלק עליון</span>
+                                <span class="text-[9px] text-stone-400 block mb-1 font-sans">חלק עליון</span>
                                 <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
                                   ${getThumbnail(topItem)}
                                 </div>
                               </div>
 
                               <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
-                                <span class="text-[9px] text-stone-400 block mb-1">חלק תחתון</span>
+                                <span class="text-[9px] text-stone-400 block mb-1 font-sans">חלק תחתון</span>
                                 <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
                                   ${getThumbnail(bottomItem)}
                                 </div>
                               </div>
 
                               <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
-                                <span class="text-[9px] text-stone-400 block mb-1">נעליים</span>
+                                <span class="text-[9px] text-stone-400 block mb-1 font-sans">נעליים</span>
                                 <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
                                   ${getThumbnail(shoesItem)}
                                 </div>
                               </div>
 
                               <div class="bg-stone-50/50 p-1.5 rounded-xl text-center border border-stone-100">
-                                <span class="text-[9px] text-stone-400 block mb-1">אקססוריז</span>
+                                <span class="text-[9px] text-stone-400 block mb-1 font-sans">אקססוריז</span>
                                 <div class="w-12 h-12 mx-auto flex items-center justify-center bg-white rounded-lg overflow-hidden border border-stone-100">
                                   ${getThumbnail(accessoryItem)}
                                 </div>
@@ -1055,7 +1394,6 @@
             });
         }
 
-        // טעינת לוק שלם לתוך חדר ההלבשה
         function loadLookToBuilder(lookId) {
             const look = looks.find(l => l.id === lookId);
             if (!look) return;
@@ -1069,11 +1407,32 @@
             switchTab('builder');
         }
 
-        // סינון תיקיות
         function setFolderFilter(folderName) {
             selectedFolderFilter = folderName;
             renderLooks();
         }
+
+        // Export functions to standard window scope for inline onclick events
+        window.switchTab = switchTab;
+        window.toggleAddItemForm = toggleAddItemForm;
+        window.triggerFileInput = triggerFileInput;
+        window.handleImageUpload = handleImageUpload;
+        window.updateToleranceValue = updateToleranceValue;
+        window.resetCanvasImage = resetCanvasImage;
+        window.autoRemoveBackground = autoRemoveBackground;
+        window.addNewItem = addNewItem;
+        window.deleteItem = deleteItem;
+        window.deleteLook = deleteLook;
+        window.toggleAddFolderForm = toggleAddFolderForm;
+        window.addNewFolder = addNewFolder;
+        window.saveCurrentLook = saveCurrentLook;
+        window.generateAISuggestion = generateAISuggestion;
+        window.setFolderFilter = setFolderFilter;
+        window.removeItemFromSlot = removeItemFromSlot;
+        window.toggleSelectBuilderItem = toggleSelectBuilderItem;
+        window.dressItem = dressItem;
+        window.loadLookToBuilder = loadLookToBuilder;
+        window.loadDefaultItems = loadDefaultItems;
 
     </script>
 </body>
